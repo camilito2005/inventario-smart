@@ -68,8 +68,8 @@ SQL;
         $resultadoc = pg_query_params($conexion, $consulta, array($dni, $nombre, $apellido, $telefono, $direccion, $correo, $contraseña ,$fecha, $rol));
 
         if ($resultadoc) {
-            //header("Location: ./usuarios.php?accion=verusuarios");
-            echo "usuario registrado correctamente";
+            header("Location: ./usuarios.php?accion=verusuarios");
+            //echo "usuario registrado correctamente";
             exit;
         } else {
             if (!$resultadoc) {
@@ -283,5 +283,160 @@ HTML;
 
     echo $html;
 }
+
+
+function Login(){
+    session_start();
+
+    include_once "../conexion.php";
+
+    $conexion = Conexion();
+
+   
+     // Validar que se envíen los datos del formulario
+     if (!isset($_POST['correo'], $_POST['contraseña']) || empty(trim($_POST['correo'])) || empty(trim($_POST['contraseña']))) {
+        echo "Por favor, completa todos los campos.";
+        return;
+    }
+
+     // Obtener las credenciales del formulario
+     $correo = $_POST["correo"];
+     $contraseña = $_POST["contraseña"];
+ 
+    // Consultar la base de datos para validar el usuario
+    $consulta = pg_query_params(
+        $conexion,
+        "SELECT 
+            u.id, 
+            u.dni, 
+            u.nombre, 
+            u.apellido, 
+            u.telefono, 
+            u.direccion,  
+            u.correo, 
+            u.contraseña, 
+            u.rol_id, 
+            r.descripcion AS rol_descripcion
+         FROM 
+            usuarios u
+         INNER JOIN 
+            roles r 
+         ON 
+            u.rol_id = r.id
+         WHERE 
+            u.correo = $1",
+        array($correo)
+    );
+    
+
+    $resultado_consulta = pg_fetch_assoc($consulta);
+
+    // Verifica si se encontró un resultado
+    if ($resultado_consulta) {
+        // Verificar la contraseña
+        if ($resultado_consulta['contraseña'] === $contraseña) { // Asegúrate de comparar correctamente
+            $_SESSION["id"] = $resultado_consulta['id'];
+            $_SESSION["dni"] = $resultado_consulta['dni'];
+            $_SESSION["nombre"] = $resultado_consulta['nombre'];
+            $_SESSION["apellido"] = $resultado_consulta['apellido'];
+            $_SESSION["telefono"] = $resultado_consulta['telefono'];
+            $_SESSION["direccion"] = $resultado_consulta['direccion'];
+            $_SESSION["correo"] = $resultado_consulta['correo'];
+            $_SESSION["contraseña"] = $resultado_consulta['contraseña'];
+            $_SESSION["descripcion"] = $resultado_consulta['rol_descripcion'];
+            $_SESSION["rol_id"] = $resultado_consulta['rol_id']; // Guarda el cargo_id para redirigir
+
+            // Redirecciona según el rol del usuario
+            if ($resultado_consulta['rol_id'] == 1) {  // Administrador
+                header("Location: ../vistas/usuarios.php?accion=ver"); // Cambia la URL según tu estructura
+                /*echo "<br>hola nombre :".$_SESSION["nombre"]."</br>";
+                echo "<br> descripcion : ".$_SESSION["descripcion"]."</br>";
+                echo "<br> rol : ".$_SESSION["rol_id"];*/
+                exit;
+            } elseif ($resultado_consulta['rol_id'] == 2) {  // Empleado
+                header("Location: ../vistas/usuarios.php?accion=ver"); 
+                /*echo "<br>hola nombre :".$_SESSION["nombre"]."</br>";
+                echo "<br> descripcion : ".$_SESSION["descripcion"]."</br>";
+                echo "<br> rol : ".$_SESSION["rol_id"];*/
+                //header("Location: ../catalogo/catalogo.php?accion=catalogo"); // Cambia la URL según tu estructura
+                exit;
+            } else {
+                echo "Rol no reconocido.";
+            }
+            exit; // Asegúrate de llamar a exit después de redireccionar
+        } else {
+            echo "Contraseña incorrecta.";
+        }
+    } else {
+        echo "El correo no está registrado.";
+    }
+}
+
+function Cerrar_sesion()
+{
+    session_start();
+    session_destroy();
+    header("Location: ../vistas/login.php?accion=login-html");
+    exit;
+}
+function Buscar($search) {
+    if (!empty($search)) {
+        include_once "../conexion.php";
+        $conexion = Conexion();
+
+        if (!$conexion) {
+            die("Error al conectar con la base de datos");
+        }
+
+        $consulta = <<<SQL
+   SELECT 
+    usuarios.id, 
+    usuarios.dni, 
+    usuarios.nombre, 
+    usuarios.apellido, 
+    usuarios.telefono, 
+    usuarios.direccion, 
+    usuarios.correo, 
+    usuarios.contraseña AS contraseña, 
+    roles.descripcion AS cargo 
+FROM 
+    usuarios
+JOIN 
+    roles 
+ON 
+    usuarios.rol_id = roles.id
+WHERE 
+    usuarios.nombre ILIKE $1;
+SQL;
+$resultado_consulta = pg_query_params($conexion, $consulta, ["%$search%"]);
+
+        if (!$resultado_consulta) {
+            die("Error en la consulta");
+        }
+
+        $array = [];
+
+        if (pg_num_rows($resultado_consulta) > 0) {
+            $fila = pg_fetch_all($resultado_consulta);
+            foreach ($fila as $filas) {
+                $array[] = [
+                    "id"      => $filas["id"],
+                    "dni"      => $filas["dni"],
+                    "nombre"      => $filas["nombre"],
+                    "apellidos"   => $filas["apellido"],
+                    "telefono"    => $filas["telefono"],
+                    "direccion"   => $filas["direccion"],
+                    "correo"      => $filas["correo"],
+                    "contraseña"  => $filas["contraseña"],
+                    "cargo"  => $filas["cargo"]
+                ];
+            }
+            echo json_encode($array);
+        } else {
+            echo json_encode([]); // Retorna un array vacío si no hay resultados
+        }
+    }
+}
+
 
 ?>

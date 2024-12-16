@@ -22,6 +22,9 @@ if ($accion == "actualizar") {
 if ($accion == "eliminar") {
     Eliminar();
 }
+if ($accion == "buscar") {
+    Buscar($search);
+}
 
 //ingresar_equipos();
 ?>

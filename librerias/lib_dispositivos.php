@@ -24,7 +24,7 @@ function RegistrarEquipos()
     include_once "../conexion.php";
     $conexion = Conexion();
 
-    // Verificar si el equipo ya está registrado (por ejemplo, modelo + marca como identificador único)
+    /* Verificar si el equipo ya está registrado (por ejemplo, modelo + marca como identificador único)
     $consultaEquipo = "SELECT count(*) FROM dispositivos WHERE dispositivo_marca = $1 AND dispositivo_modelo = $2";
     $resultadoEquipo = pg_query_params($conexion, $consultaEquipo, array($marca, $modelo));
     $countEquipo = pg_fetch_result($resultadoEquipo, 0, 0);
@@ -33,7 +33,7 @@ function RegistrarEquipos()
         echo "El equipo con la marca '$marca' y modelo '$modelo' ya está registrado.";
         echo '<a href="formulario_registro_equipos.php">Volver</a>';
         exit;
-    }
+    }*/
 
     // Hash seguro para el campo de periféricos si se necesita proteger
     //$hashPerifericos = password_hash($perifericos, PASSWORD_DEFAULT);
@@ -328,6 +328,67 @@ function Modificar_equipos()
             </div>
     </html>
 HTML;
+}
+
+function Buscar($search) {
+    if (!empty($search)) {
+        include_once "../conexion.php";
+        $conexion = Conexion();
+
+        if (!$conexion) {
+            die("Error al conectar con la base de datos");
+        }
+
+        $consulta = <<<SQL
+SELECT 
+    dispositivos.dispositivo_id AS id, 
+    dispositivos.dispositivo_marca AS marca, 
+    dispositivos.dispositivo_modelo AS modelo, 
+    dispositivos.dispositivo_ram AS ram, 
+    dispositivos.dispositivo_procesador AS procesador, 
+    dispositivos.dispositivo_almacenamiento AS almacenamiento, 
+    dispositivos.dispositivo_perifericos AS perifericos, 
+    dispositivos.dispositivo_nombre_usuario AS nombre, 
+    dispositivos.fecha_registro AS fecha_registro, 
+    dispositivos.fecha_modificacion AS fecha_modificacion, 
+    dispositivos.dispositivo_direccion_mac AS dir_mac
+FROM 
+    dispositivos
+WHERE 
+    dispositivos.dispositivo_nombre_usuario ILIKE $1;
+SQL;
+
+$resultado_consulta = pg_query_params($conexion, $consulta, ["%$search%"]);
+
+        if (!$resultado_consulta) {
+            die("Error en la consulta");
+        }
+
+
+        $array = [];
+
+        if (pg_num_rows($resultado_consulta) > 0) {
+            $fila = pg_fetch_all($resultado_consulta);
+            foreach ($fila as $filas) {
+                $array[] = [
+                    "id"      => $filas["id"],
+                    "marca"      => $filas["marca"],
+                    "modelo"      => $filas["modelo"],
+                    "ram"   => $filas["ram"],
+                    "procesador"    => $filas["procesador"],
+                    "almacenamiento"   => $filas["almacenamiento"],
+                    "perifericos"      => $filas["perifericos"],
+                    "nombre"  => $filas["contraseña"],
+                    "fecha_registro"  => $filas["fecha_registro"],
+                    "fecha_modificacion"  => $filas["fecha_modificacion"],
+                    "dir_mac"  => $filas["dir_mac"]
+                ];
+            }
+            echo json_encode($array);
+        } else {
+            echo json_encode([]); // Retorna un array vacío si no hay resultados
+        }
+    }
 }
 
 

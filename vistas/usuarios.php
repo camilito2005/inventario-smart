@@ -24,4 +24,7 @@ if ($accion == "actualizar") {
 if ($accion == "eliminar") {
     Eliminar();
 }
+if ($accion == "cerrar") {
+    Cerrar_sesion();
+}
 ?>

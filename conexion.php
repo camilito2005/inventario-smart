@@ -7,7 +7,7 @@ $host = "localhost";
 $port = "5432";
 $dbname = "inventario-smart";
 $user = "postgres";
-$contraseña ="postgres";
+$contraseña ="camilo";
 
 $conexion = pg_connect("dbname = $dbname port =  $port host = $host user = $user password = $contraseña ");
 
