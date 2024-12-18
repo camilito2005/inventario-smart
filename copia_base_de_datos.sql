@@ -112,6 +112,56 @@ ALTER SEQUENCE public.dispositivos_dispositivos_id_seq OWNED BY public.dispositi
 
 
 --
+-- Name: password_reset; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.password_reset (
+    id integer NOT NULL,
+    correo text NOT NULL,
+    token character varying(255) NOT NULL,
+    expires_at timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+ALTER TABLE public.password_reset OWNER TO postgres;
+
+--
+-- Name: password_reset_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.password_reset_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.password_reset_id_seq OWNER TO postgres;
+
+--
+-- Name: password_reset_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.password_reset_id_seq OWNED BY public.password_reset.id;
+
+
+--
+-- Name: password_resets_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.password_resets_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.password_resets_id_seq OWNER TO postgres;
+
+--
 -- Name: roles; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -204,6 +254,13 @@ ALTER TABLE ONLY public.dispositivos ALTER COLUMN dispositivo_id SET DEFAULT nex
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
+ALTER TABLE ONLY public.password_reset ALTER COLUMN id SET DEFAULT nextval('public.password_reset_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
 ALTER TABLE ONLY public.roles ALTER COLUMN id SET DEFAULT nextval('public.roles_id_seq'::regclass);
 
 
@@ -278,6 +335,29 @@ SELECT pg_catalog.setval('public.dispositivos_dispositivos_id_seq', 36, true);
 
 
 --
+-- Data for Name: password_reset; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.password_reset (id, correo, token, expires_at, created_at) FROM stdin;
+1	c@gmail.com	54c69ef0c695d3f89595d63fa2a865331ec465c69601fc730a03d6bddebec7a9	2024-12-19 00:05:38-05	2024-12-18 17:05:38.476297-05
+\.
+
+
+--
+-- Name: password_reset_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.password_reset_id_seq', 1, true);
+
+
+--
+-- Name: password_resets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.password_resets_id_seq', 1, false);
+
+
+--
 -- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -327,6 +407,14 @@ ALTER TABLE ONLY public.categorias
 
 ALTER TABLE ONLY public.dispositivos
     ADD CONSTRAINT dispositivos_pk PRIMARY KEY (dispositivo_id);
+
+
+--
+-- Name: password_reset_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.password_reset
+    ADD CONSTRAINT password_reset_pkey PRIMARY KEY (id);
 
 
 --

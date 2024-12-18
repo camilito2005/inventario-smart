@@ -35,8 +35,9 @@ $categorias= pg_fetch_all($resultado_consulta);
     <title>Registro de equipos</title>
 </head>
 <body>
+    
 HTML;
-
+Menu();
     // if (isset($_SESSION["nombre"])) {
         echo <<<HTML
 <div id="loading" style="display: none;">Cargando...</div>
@@ -152,12 +153,16 @@ HTML;
         </button>
     </form>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var elems = document.querySelectorAll('select');
         M.FormSelect.init(elems);
     });
 </script>
+HTML;
+Footer();
+echo <<<HTML
 </body>
 </html>
 HTML;
@@ -202,11 +207,12 @@ function Mostrarequipos(){
     </head>
     <body>
 HTML;
+Menu();
 
     if (isset($_SESSION["nombre"])) {
         $nombreUsuario = htmlspecialchars($_SESSION["nombre"] );
 
-        echo <<<HTML
+        /*echo <<<HTML
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <div class="container-fluid">
                 <a class="navbar-brand" href="../index.php">Inventario SmartInfo</a>
@@ -227,7 +233,7 @@ HTML;
                 </div>
             </div>
         </nav>
-HTML;
+HTML;*/
 
         echo <<<HTML
         <a href="../vistas/equipos.php?accion=excel" class="btn btn-warning"><i class="fa-solid fa-file-excel">Excel</i></a>
@@ -411,10 +417,8 @@ HTML;
         <script src="../js/buscar.js">
         </script>
 HTML;
-
+//Footer();
     echo <<<HTML
-      <!-- Botón para agregar usuarios -->
-      
     </body>
     </html>
 HTML;
@@ -925,24 +929,11 @@ HTML;
 HTML;
 }
 
-//
-                                            //${encodeURIComponent(idencriptado)}  ${encodeURIComponent(idencriptado)}
-function Principal() {
-    session_start();
-    
+function Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./vistas/usuarios.php?accion=perfil",$cerrar="./vistas/usuarios.php?accion=cerrar",$login="./vistas/login.php?accion=login-html",$aggequipos="./vistas/equipos.php?accion=aggequipos",$categorias="./vistas/categorias.php?accion=vercategorias",$reportes="./vistas/estadisticas.php?accion=masmarcas",$verusuario="./vistas/usuarios.php?accion=aggusuarios"){
     echo <<<HTML
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario SmartInfo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Inventario SmartInfo</a>
+            <a class="navbar-brand" href="$ruta_titulo">$titulo</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -958,19 +949,19 @@ HTML;
                         <span class="nav-link text-white">Hola, $nombreUsuario</span>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="./vistas/usuarios.php?accion=perfil">Perfil</a>
-                    </li>
-                    <li class="nav-item">
-                        <form action="./vistas/usuarios.php?accion=cerrar" method="post" style="display: inline;">
+                        <form action="$cerrar" method="post" style="display: inline;">
                             <button class="btn btn-danger nav-link" type="submit">Cerrar Sesión</button>
                         </form>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="$ruta_perfil">Perfil</a>
                     </li>
 HTML;
     } else {
         // Usuario no autenticado: mostrar opción de login
         echo <<<HTML
                     <li class="nav-item">
-                        <a class="nav-link" href="./vistas/login.php?accion=login-html">Login</a>
+                        <a class="nav-link" href="$login">Login</a>
                     </li>
 HTML;
     }
@@ -980,25 +971,54 @@ HTML;
                         <a class="nav-link active" href="#">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./vistas/equipos.php?accion=aggequipos">Productos</a>
+                        <a class="nav-link" href="$aggequipos">Productos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./vistas/categorias.php?accion=vercategorias">Categorías</a>
+                        <a class="nav-link" href="$categorias">Categorías</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Movimientos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./vistas/estadisticas.php?accion=masmarcas">Reportes</a>
+                        <a class="nav-link" href="$reportes">Reportes</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="./vistas/usuarios.php?accion=aggusuarios">Usuarios</a>
+                        <a class="nav-link" href="$verusuario">Usuarios</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
+HTML;
+}
 
+function Footer(){
+    echo <<<HTML
+ <footer class="bg-primary text-white text-center py-3">
+        <p class="mb-0">&copy; 2024 Inventario SmartInfo. Todos los derechos reservados.</p>
+    </footer>
+HTML;
+}
+
+//
+                                            //${encodeURIComponent(idencriptado)}  ${encodeURIComponent(idencriptado)}
+function Principal() {
+    session_start();
+    
+    echo <<<HTML
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario SmartInfo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+HTML;
+Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./vistas/usuarios.php?accion=perfil",$cerrar="./vistas/usuarios.php?accion=cerrar",$login="./vistas/login.php?accion=login-html",$aggequipos="./vistas/equipos.php?accion=aggequipos",$categorias="./vistas/categorias.php?accion=vercategorias",$reportes="./vistas/estadisticas.php?accion=masmarcas",$verusuario="./vistas/usuarios.php?accion=aggusuarios");
+
+echo<<<HTML
     <header class="bg-light text-center py-5">
         <div class="container">
             <h1 class="display-4">Bienvenido al Inventario SmartInfo</h1>
@@ -1300,7 +1320,7 @@ function Formulario_usuarios(){
 </head>
 <body>
 HTML;
-
+Menu();
     if (isset($_SESSION["nombre"])) {
         echo <<<HTML
         <div>
@@ -1440,6 +1460,9 @@ HTML;
         M.FormSelect.init(elems);
     });
 </script>
+HTML;
+Footer();
+echo<<<HTML
 </body>
 </html>
 HTML;
@@ -1650,6 +1673,9 @@ function Mostrar_usuarios()
         <title>Gestión de Usuarios</title>
     </head>
     <body>
+HTML;
+Menu();
+echo <<<HTML
         <div class="container mt-4">
             <!-- Header con usuario en sesión y botón de cerrar sesión -->
             <div class="d-flex justify-content-between align-items-center">
@@ -1798,6 +1824,9 @@ HTML;
             </div>
         </div>
         <script src="../js/busqueda.js"></script>
+HTML;
+Footer();
+echo <<<HTML
     </body>
     </html>
 HTML;
@@ -1828,6 +1857,11 @@ function Login_html() {
 </head>
 
 <body>
+HTML;
+
+Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=aggequipos",$categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=aggusuarios");
+    echo <<<HTML
+    
     <div id="loading">Cargando...</div>
     <p>{$mensaje}</p>
     <div class="mx-auto contenedor">
@@ -1841,7 +1875,7 @@ function Login_html() {
                 <br>
                 <input class="btn btn-primary" name="inicio" type="submit" value="Entrar">
                 <br>
-                <a class="link-recuperar" href="../usuarios/usuarios.php?accion=recuperar">¿Olvidaste tu contraseña?</a>
+                <a class="link-recuperar" href="../vistas/usuarios.php?accion=recuperar">¿Olvidaste tu contraseña?</a>
             </form>
         </div>
     </div>
@@ -1855,6 +1889,9 @@ function Login_html() {
             <i class="fa-solid fa-house"></i> Inicio
         </button>
     </form>
+HTML;
+Footer();
+echo <<<HTML
 </body>
 
 </html>
@@ -2036,7 +2073,7 @@ HTML;
             
 HTML;
         }
-    
+        Footer();
         echo <<<HTML
           <!-- Botón para agregar usuarios -->
           
@@ -2152,6 +2189,9 @@ HTML;
         M.FormSelect.init(elems);
     });
 </script>
+HTML;
+Footer();
+echo <<<HTML
 </body>
 </html>
 HTML;

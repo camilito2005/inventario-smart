@@ -650,6 +650,8 @@ $resultado_consulta = pg_query_params($conexion, $consulta, ["%$search%"]);
 }
 
 function Perfil() {
+    require_once "../librerias/lib_html.php";
+
     session_start();
     include_once "../conexion.php";
     $conexion = Conexion();
@@ -671,12 +673,13 @@ function Perfil() {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Perfil de Usuario</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
         <!--<link rel="stylesheet" href="../../css/perfil.css">-->
     </head>
     <body>
 HTML;
-
+Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./vistas/usuarios.php?accion=perfil",$cerrar="./vistas/usuarios.php?accion=cerrar",$login="./vistas/login.php?accion=login-html",$aggequipos="./vistas/equipos.php?accion=aggequipos",$categorias="./vistas/categorias.php?accion=vercategorias",$reportes="./vistas/estadisticas.php?accion=masmarcas",$verusuario="./vistas/usuarios.php?accion=aggusuarios");
 
     echo <<<HTML
     <div class="container">
@@ -814,9 +817,315 @@ echo <<<HTML
             var instances = M.Modal.init(elems);
         });
     </script>
+HTML;
+Footer();
+echo <<<HTML
 </body>
 </html>
 HTML;
+}
+function Formulario_enviar_correo() {
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/d6ecbc133f.js" crossorigin="anonymous"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            color: #495057;
+            margin: 0;
+            padding: 0;
+        }
+        .contenedor {
+            max-width: 400px;
+            margin-top: 50px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        .btn-outline-secondary {
+            margin: 10px 0;
+        }
+        #loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #495057;
+        }
+    </style>
+</head>
+HTML;
+Menu();
+echo <<<HTML
+<body>
+    <!--<div id="loading">Cargando...</div>-->
+    
+    <div class="container d-flex flex-column align-items-center justify-content-center vh-100">
+        <div class="contenedor">
+            <h2 class="text-center text-primary">Restablecer Contraseña</h2>
+            <p class="text-center text-muted">
+                Introduce tu correo electrónico para recibir un enlace de restablecimiento.
+            </p>
+            <form id="myForm" action="../vistas/usuarios.php?accion=correo_enviado" onsubmit="showLoading()" method="post">
+                <div class="mb-3">
+                    <input class="form-control" id="correo" placeholder="Correo electrónico" required type="email" name="correo">
+                </div>
+                <div class="d-grid">
+                    <button class="btn btn-primary" type="submit">
+                        Enviar
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="mt-3 d-flex flex-column">
+            <form id="myForm" action="../vistas/usuarios.php?accion=aggusuario" onsubmit="showLoading()" method="post">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="fa-solid fa-user-plus"></i> Agregar Usuarios
+                </button>
+            </form>
+            
+            <form id="myForm" action="../index.php" onsubmit="showLoading()" method="post">
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="fa-solid fa-house"></i> Inicio
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        function showLoading() {
+            document.getElementById('loading').style.display = 'flex';
+        }
+    </script>
+</body>
+
+</html>
+HTML;
+}
+function restablecer_contraseña(){
+
+    try {
+        include_once "../conexion.php";
+        $conexion = Conexion();
+    
+        if (!$conexion) {
+            echo ('Error al conectar a la base de datos.');
+        }
+    
+        if (!isset($_POST['correo'])) {
+            echo ('Correo electrónico es requerido');
+        }
+        $correo = $_POST['correo'];
+    
+        $token = bin2hex(openssl_random_pseudo_bytes(32));
+        $hora_expiracion = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+        /*echo "<br><br> correo : ".$correo."</></>";
+        echo "<br><br> token ; ".$token."</></>";
+        echo "<br><br> hora expiracion: ".$hora_expiracion."</></>";die();*/
+    
+        $query = 'INSERT INTO password_reset (correo, token, expires_at) VALUES ($1, $2, $3)';
+        $result = pg_query_params($conexion, $query, [$correo, $token, $hora_expiracion]);
+    
+        if (!$result) {
+            $error = pg_last_error($conexion);
+            echo ('Error al insertar en la base de datos: ' . $error);
+        }
+        if ($result) {
+            
+        $resetLink = "http://localhost/ti/vistas/usuario.php?accion=reset&token=$token";
+
+        echo "este es un simulacro de el link que deberia mandar en caso de llegar al correo, pero como no llega ";
+
+        echo "<a href='http://localhost/ti/vistas/usuarios.php?accion=contraseña&token=$token'>formulario para restablecer contraseña</a>";
+        echo ' <br>  <a href="../vistas/pagina-principal/login.php">volver </a>';
+    
+        }
+        $to = $correo;
+        $subject = 'Restablecer Contraseña';
+        $message = "Para restablecer tu contraseña, por favor haz clic en el siguiente enlace: $resetLink";
+        $headers = 'From: no-reply@marrugobarrioscamilo2005@gmail.com' . "\r\n" .
+                'Reply-To: no-reply@marrugobarrioscamilo2005@gmail.com' . "\r\n" .
+                'X-Mailer: PHP/' . phpversion();
+    
+        $mail_sent = mail($to, $subject, $message, $headers);
+    
+        if ($mail_sent) {
+            echo 'Hemos enviado un enlace para restablecer tu contraseña...';
+            echo ' <br>  <a href="../vistas/pagina-principal/login.php">volver </a>';
+        } else {
+            throw new Exception('Hubo un problema al enviar el correo. Por favor, inténtelo de nuevo más tarde.');
+        }
+    } catch (Exception $e) {
+        echo 'Error: ' . $e->getMessage();
+    }
+    
+}
+
+function Formulario_restablecer_contraseña(){
+
+    include_once "../../conexion.php";
+
+    $conexion = conexion();
+
+
+        $token = $_GET['token'];
+        //echo $token;
+
+    if (!isset($_GET['token'])) {
+        die('Token es requerido');
+    }
+
+    // Usar parámetros de consulta para evitar inyecciones SQL
+    $query = 'SELECT * FROM password_reset WHERE token = $1 AND expires_at > NOW()';
+    $result = pg_query_params($conexion, $query, array($token));
+
+    if (!$result) {
+        die('Error en la consulta: ' . pg_last_error());
+    }
+
+    $reset = pg_fetch_assoc($result);
+
+    if (!$reset) {
+        die('El token es inválido o ha expirado.');
+    }
+
+    pg_free_result($result);
+    pg_close($conexion);
+
+    echo <<<HTML
+    <html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="../../js/contraseña.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mt-5">Restablecer Contraseña</h2>
+        <form action="../usuarios/usuarios.php?accion=restablecer" onsubmit="return validateForm()" method="post" class="mt-4">
+            <input type="hidden" name="token" value="$token">
+            
+            <div class="form-group">
+                <label for="password">Nueva Contraseña:</label>
+                <input type="password" id="password" name="password" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirmar Nueva Contraseña:</label>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                <div id="passwordError" class="error-message"></div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    
+</body>
+</html>
+HTML;
+}
+
+function Restablecer(){
+    
+    include_once "../../conexion.php";
+
+if (isset($_POST['token'], $_POST['password'])) {
+    $datos= [
+        "token"=>$_POST["token"],
+        "password"=>$_POST["password"],
+        "ComfirmarContraseña"=>$_POST["confirm_password"]
+    ];
+    /*$token = $_POST['token'];
+    $password = $_POST['password'];
+
+    $ComfirmarContraseña = $_POST['confirm_password'];*/
+
+    if ($datos["password"] !== $datos["ComfirmarContraseña"]) {
+        echo "Las contraseñas no coinciden.";
+        exit;
+    }
+
+    if (strlen($datos['password']) < 6) {
+        echo "La contraseña debe tener al menos 6 caracteres.";
+        exit;
+    }
+
+    $conexion = Conexion();
+
+    echo $datos["token"];
+    //echo $password;
+    
+    // Verificar el token
+    $result = pg_query_params($conexion, "SELECT correo, expires_at FROM password_reset WHERE token = $1", array($datos["token"]));
+    //echo $result;
+    //var_dump($result);
+    $reset = pg_fetch_assoc($result);
+
+    if ($reset && $reset['expires_at'] > date('Y-m-d H:i:s')) {
+        // Token válido, actualizar la contraseña
+        $email = $reset['correo'];
+        //$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        // Actualizar la contraseña del usuario
+        pg_query_params($conexion, "UPDATE usuarios SET contraseña = $1 WHERE correo = $2", array($datos["password"], $email));
+
+        // Eliminar el token usado
+        pg_query_params($conexion, "DELETE FROM password_reset WHERE token = $1", array($datos["token"]));
+
+        echo "La contraseña ha sido actualizada con éxito.";
+        echo '<a href="../usuarios/usuarios.php">ver registros </a>';
+
+    } else {
+        echo "El enlace de restablecimiento no es inválido o ha expirado.";
+        echo '<a href="../pagina-principal/login.php">volver</a>';
+
+    }
+
+    pg_close($conexion);
+}
+
 }
 
 

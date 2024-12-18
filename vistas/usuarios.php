@@ -34,4 +34,10 @@ if ($accion == "buscar") {
 if ($accion == "perfil") {
     Perfil();
 }
+if ($accion== "recuperar") {
+    Formulario_enviar_correo();
+}
+if ($accion == "correo_enviado") {
+    restablecer_contraseña();
+}
 ?>
