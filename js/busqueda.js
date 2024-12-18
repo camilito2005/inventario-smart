@@ -9,7 +9,7 @@ console.log("busqueda");
             console.log(search);
             if (search) {
                 $.ajax({
-                    url: "./usuarios.php?accion=", // URL con la acción "buscar"
+                    url: "./usuarios.php?accion=buscar", // URL con la acción "buscar"
                     type: "POST",
                     data: { search },
                     success: function (response) {
