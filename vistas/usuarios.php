@@ -40,4 +40,7 @@ if ($accion== "recuperar") {
 if ($accion == "correo_enviado") {
     restablecer_contraseña();
 }
+if($accion == "contraseña"){
+    Formulario_restablecer_contraseña();
+}
 ?>

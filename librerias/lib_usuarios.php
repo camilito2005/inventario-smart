@@ -968,11 +968,11 @@ function restablecer_contraseña(){
         }
         if ($result) {
             
-        $resetLink = "http://localhost/ti/vistas/usuario.php?accion=reset&token=$token";
+        $resetLink = "http://localhost/inventario-smart/vistas/usuario.php?accion=reset&token=$token";
 
         echo "este es un simulacro de el link que deberia mandar en caso de llegar al correo, pero como no llega ";
 
-        echo "<a href='http://localhost/ti/vistas/usuarios.php?accion=contraseña&token=$token'>formulario para restablecer contraseña</a>";
+        echo "<a href='http://localhost/inventario-smart/vistas/usuarios.php?accion=contraseña&token=$token'>formulario para restablecer contraseña</a>";
         echo ' <br>  <a href="../vistas/pagina-principal/login.php">volver </a>';
     
         }
@@ -997,21 +997,18 @@ function restablecer_contraseña(){
     
 }
 
-function Formulario_restablecer_contraseña(){
-
-    include_once "../../conexion.php";
+function Formulario_restablecer_contraseña() {
+    include_once "../conexion.php";
 
     $conexion = conexion();
 
+    $token = $_GET['token'] ;
 
-        $token = $_GET['token'];
-        //echo $token;
-
-    if (!isset($_GET['token'])) {
+    if (!$token) {
         die('Token es requerido');
     }
 
-    // Usar parámetros de consulta para evitar inyecciones SQL
+    // Consulta segura con parámetros
     $query = 'SELECT * FROM password_reset WHERE token = $1 AND expires_at > NOW()';
     $result = pg_query_params($conexion, $query, array($token));
 
@@ -1029,47 +1026,96 @@ function Formulario_restablecer_contraseña(){
     pg_close($conexion);
 
     echo <<<HTML
-    <html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restablecer Contraseña</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="../../js/contraseña.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/d6ecbc133f.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        .form-container h2 {
+            color: #495057;
+        }
+        .form-container .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .form-container .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h2 class="mt-5">Restablecer Contraseña</h2>
-        <form action="../usuarios/usuarios.php?accion=restablecer" onsubmit="return validateForm()" method="post" class="mt-4">
+    <div class="form-container">
+        <h2 class="text-center">Restablecer Contraseña</h2>
+        <form action="../usuarios/usuarios.php?accion=restablecer" onsubmit="return validateForm()" method="post">
             <input type="hidden" name="token" value="$token">
-            
-            <div class="form-group">
-                <label for="password">Nueva Contraseña:</label>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Nueva Contraseña:</label>
                 <input type="password" id="password" name="password" class="form-control" required>
             </div>
 
-            <div class="form-group">
-                <label for="confirm_password">Confirmar Nueva Contraseña:</label>
+            <div class="mb-3">
+                <label for="confirm_password" class="form-label">Confirmar Nueva Contraseña:</label>
                 <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
                 <div id="passwordError" class="error-message"></div>
             </div>
-            
-            <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
+
+            <button type="submit" class="btn btn-primary w-100">Actualizar Contraseña</button>
         </form>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    
+    <script>
+        function validateForm() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const passwordError = document.getElementById('passwordError');
+
+            if (password !== confirmPassword) {
+                passwordError.textContent = 'Las contraseñas no coinciden.';
+                return false;
+            }
+            passwordError.textContent = '';
+            return true;
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 HTML;
 }
 
+
 function Restablecer(){
     
-    include_once "../../conexion.php";
+    include_once "../conexion.php";
 
 if (isset($_POST['token'], $_POST['password'])) {
     $datos= [
