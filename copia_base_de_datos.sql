@@ -248,7 +248,8 @@ COPY public.dispositivos (dispositivo_id, dispositivo_marca, dispositivo_modelo,
 30	PENDIENTE	PENDIENTE	PENDIENTE	PENDIENTE	PENDIENTE	PENDIENTE	FALTA JHOA	2024-12-16 16:34:26	\N	PENDIENTE	\N	2	\N
 31	PENDIENTE	PENDIENTE	PENDIENTE	PENDIENTE	PENDIENTE	PENDIENTE	FALTA LESLY	2024-12-16 16:34:56	\N	PENDIENTE	\N	2	\N
 32	prueba	prueba	prueba	prueba	prueba	prueba	prueba	2024-12-16 20:27:52	\N	prueba	prueba	\N	prueba
-3	apple	imac	8 GB	intel core i5	500 GB	mouse y teclado marca dell	camilo	2024-12-14 19:46:00	2024-12-17 15:29:29	82:16:00:CF:02:00		2	smartinfo
+34	prueba	prueba	prueba	prueba	prueba	prueba	prueba	2024-12-18 09:48:31	\N	prueba	                       prueba 	\N	prueba
+35	prueba	prueba	prueba	prueba	prueba	prueba	prueba	2024-12-18 09:52:10	\N	prueba	prueba                        	1	prueba
 6	apple	mackbook pro	8 GB	intel core i5	250 GB	cargador	Gustavo	2024-12-16 15:25:04	2024-12-17 15:29:47	8c:85:90:OC:51:fa		1	smartinfo
 8	Apple	imac	16 GB	intel core i5	1 TR 	mouse teclado	Anyie sarmiento	2024-12-16 15:33:02	2024-12-17 15:30:24	82:69:4a:C3:50:00		2	Artes2
 10	Apple	Imac	16 GB	Intel core i5 	1 TR	teclado-mouse	anyie - chiqui	2024-12-16 15:41:57	2024-12-17 15:30:46	64:18:d1:f0:e7:fa		2	artes
@@ -264,6 +265,8 @@ COPY public.dispositivos (dispositivo_id, dispositivo_marca, dispositivo_modelo,
 23	Dell	Pc de escritorio armado	16 GB	Intel core i3	222 GB	mouse y teclado	Jesus	2024-12-16 16:21:31	2024-12-17 15:54:05	78-45-C4-2d-4d-86		2	jesus1224
 24	Apple	Mackbook pro	8 GB	intel core i7	250 GB	teclado	Brayan 2 	2024-12-16 16:23:03	2024-12-17 16:50:53	02:42:df:48:82:87		1	brayan2k21
 26	LG	Pc de escritorio armado	16 GB	AMD ryzen 7 5700g	480 GB	NADA 	Andres	2024-12-16 16:26:26	2024-12-17 16:51:21	00-41-0E-3c-85-AF		2	smart2k23.
+3	apple	imac	8 GB	intel core i5	500 GB	mouse y teclado marca dell	camilo	2024-12-14 19:46:00	2024-12-18 10:00:18	82:16:00:CF:02:00		2	smartinfo
+36	-jesus	prueba-jesus	prueba-jesus	prueba-jesus	prueba-jesus	prueba-jesus	-jesus	2024-12-18 12:10:55	2024-12-18 12:13:55	prueba-jesus	prueba-jesus	2	-jesus
 \.
 
 
@@ -271,7 +274,7 @@ COPY public.dispositivos (dispositivo_id, dispositivo_marca, dispositivo_modelo,
 -- Name: dispositivos_dispositivos_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.dispositivos_dispositivos_id_seq', 33, true);
+SELECT pg_catalog.setval('public.dispositivos_dispositivos_id_seq', 36, true);
 
 
 --
@@ -296,9 +299,10 @@ SELECT pg_catalog.setval('public.roles_id_seq', 2, true);
 --
 
 COPY public.usuarios (id, dni, nombre, apellido, telefono, direccion, correo, "contraseña", fecha_ingreso, rol_id, fecha_actualizacion) FROM stdin;
-2	300000	CAMILO	marrugo 	300000	la boquilla	c@gmail.com	123456	2024-12-15	1	2024-12-15 22:01:05.808
-4	999999	prueba	prueba	300	prueba	prueba@gmail.com	prueba	2024-12-16	2	2024-12-16 13:52:08.596757
-5	104329	CAMILO-Prueba	marrugo	0	la boquilla	camilo@gmail.com	camilo	2024-12-17	2	2024-12-17 10:22:28.713545
+4	999999	prueba	prueba	300	prueba	prueba@gmail.com	$2y$10$igaDYpLECF/zMLQ1z0pGEe0EMTGWdwF3Lvu18F1jPKdN/B2Whh9k.	2024-12-16	2	2024-12-16 13:52:08.596757
+7	104326	jesus alberto	morales	300000	prueba	jesus@gmail.com	$2y$10$BnquJm/Dx2Gj5Ci0v72sme.ti1gyQIVKxVWV2JiQJyqaaPknkPjfO	2024-12-18	1	2024-12-18 12:12:48.512076
+2	300000	CAMILO	marrugo 	300000	la boquilla1	c@gmail.com	$2y$10$fUlPDn4Z.duSrCqRBF2pMeAGxZ71tdcxjnggWixjPh.o19HI8RhSu	2024-12-15	1	2024-12-15 22:01:05.808
+9	camilo-usuario	camilo-usuario	camilo-usuario	300909	direccion	camilo@gmail.com	$2y$10$FW.tmFDqB4oKz2b4vRCKGO6AP6H2hQXKwhfwXviaSmQB7oJld1/GG	2024-12-18	2	2024-12-18 15:29:08.26478
 \.
 
 
@@ -306,7 +310,7 @@ COPY public.usuarios (id, dni, nombre, apellido, telefono, direccion, correo, "c
 -- Name: usuarios_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.usuarios_id_seq', 5, true);
+SELECT pg_catalog.setval('public.usuarios_id_seq', 9, true);
 
 
 --

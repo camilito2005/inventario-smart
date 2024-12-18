@@ -3,10 +3,21 @@
 
 function ingresar_equipos()
 {
+    require_once "../conexion.php";
+
+    $conexion = Conexion();
+
+    
+    $consulta = <<<SQL
+    SELECT categoria_id, nombre FROM categorias
+SQL;
+$resultado_consulta = pg_query($conexion,$consulta);
+$categorias= pg_fetch_all($resultado_consulta);
+
     session_start();
 
     if (!isset($_SESSION["nombre"])) {
-        header("Location: ../vistas/login.php?accion=login-htmlmensaje=inicia sesion para continuar");
+        header("Location: ../vistas/login.php?accion=login-html&mensaje=inicia sesion para continuar");
         exit();
     }
 
@@ -62,6 +73,18 @@ HTML;
                             <label for="procesador">Procesador del equipo</label>
                         </div>
 
+                        <div class="col-md-6">
+                <label for="">Filtrar por Categoría</label>
+                <select id="category-filter" class="form-select" name="categoria">
+HTML;
+                    foreach ($categorias as $categoria) {
+                        $id = $categoria["categoria_id"];
+                        $descripcion = $categoria["nombre"];
+                        echo "<option value=\"$id\">$descripcion</option>";
+                    }
+                    echo <<<HTML
+                    </select>
+                </div>
                         <div class="input-field">
                             <input id="almacenamiento" type="text" name="almacenamiento" required>
                             <label for="almacenamiento">Almacenamiento del equipo</label>
@@ -140,157 +163,25 @@ HTML;
 HTML;
 }
 
-
-function Mostrarequipos000(){
-    session_start();
-    echo <<<HTML
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-        <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-        <title>Tabla de equipos</title>
-    </head>
-HTML;
-
-    // if (isset($_SESSION["correo"])) {
-        echo <<<HTML
-        <body>
-            <div class="container mt-4">
-                <h3 class="text-center text-secondary">equipos</h3>
-
-                <!-- Barra de búsqueda -->
-                <div class="input-group my-4 justify-content-center">
-                    <input type="search" id="search" class="form-control w-50" placeholder="Buscar...">
-                </div>
-
-                <!-- Tabla de usuarios -->
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover align-middle text-center">
-                        <thead class="table-light">
-                            <tr>
-                                <th>ID</th>
-                                <th>NOMBRE</th>
-                                <th>MARCA</th>
-                                <th>MODELO</th>
-                                <th>MEMORIA RAM</th>
-                                <th>PROCESADOR</th>
-                                <th>ALMACENAMIENTO</th>
-                                <th>DIRECCION MAC</th>
-                                <th>PERIFERICOS</th>
-                                <th>FECHA INGRESO</th>
-                                <th>FECHA MODIFICACION</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="resultados-usuarios">
-HTML;
-
-        include_once "../conexion.php";
-        $conexion = Conexion();
-        $consulta1 = "SELECT * 
-                      FROM dispositivos ";
-        $query = pg_query($conexion, $consulta1);
-        $usuarios = pg_fetch_all($query);
-
-        if ($usuarios) {
-            foreach ($usuarios as $fila) {
-                $id_encriptado = base64_encode($fila['dispositivo_id']);
-                echo <<<HTML
-                <tr>
-                    <td>{$fila['dispositivo_id']}</td>
-                    <td>{$fila['dispositivo_nombre_usuario']}</td>
-                    <td>{$fila['dispositivo_marca']}</td>
-                    <td>{$fila['dispositivo_modelo']}</td>
-                    <td>{$fila['dispositivo_ram']}</td>
-                    <td>{$fila['dispositivo_procesador']}</td>
-                    <td>{$fila['dispositivo_almacenamiento']}</td>
-                    <td>{$fila['dispositivo_direccion_mac']}</td>
-                    <td>{$fila['dispositivo_perifericos']}</td>
-                    <td>{$fila['fecha_registro']}</td>
-HTML;
-if (!empty($fila['fecha_modificacion'])) {
-                    echo "<td>{$fila['fecha_modificacion']}</td>";
-                }else {
-                    echo "<td>no hay fecha de modificacion</td>";
-                }
-                    echo <<<HTML
-                    <td>
-                        <a href="equipos.php?accion=modificar&id={$id_encriptado}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-pen">Modificar</i>
-                        </a>
-                        <a href="equipos.php?accion=eliminar&id={$id_encriptado}" onclick="return pregunta()" class="btn btn-sm btn-danger">
-                            <i class="fas fa-trash">Eliminar</i>
-                        </a>
-                    </td>
-                </tr>
-                <script>
-                    function pregunta() {
-                        pre = confirm("¿estas seguro que desea eliminar el registro?");
-                        return pre;
-                    }
-                </script>
-HTML;
-            }
-        } else {
-            echo <<<HTML
-            <tr>
-                <td colspan="10" class="text-center">No hay equipos registrados.</td>
-            </tr>
-HTML;
-        }
-
-        echo <<<HTML
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Botón para agregar usuarios -->
-                <div class="text-center my-4">
-                    <form action="./equipos.php?accion=aggequipos" onsubmit="showLoading()" method="post">
-                        <button class="btn btn-outline-secondary" type="submit">
-                            <i class="fas fa-user-plus"></i> Agregar equipos
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Botón para volver al inicio -->
-                <div class="text-center">
-                    <form action="../index.php" onsubmit="showLoading()" method="post">
-                        <button class="btn btn-outline-secondary" type="submit">
-                            <i class="fas fa-house"></i> Inicio
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Scripts -->
-            <script src="../js/buscar.js"></script>
-            <script src="../js/pregunta.js"></script>
-        </body>
-HTML;
-//     } else {
-//         echo <<<HTML
-//         <body>
-//             <div class="container mt-5 text-center">
-//                 <p>Para continuar, inicia sesión.</p>
-//                 <a href="../pagina-principal/login.php?accion=login" class="btn btn-primary">Iniciar sesión</a>
-//             </div>
-//         </body>
-// HTML;
-//     }
-
-    echo <<<HTML
-    </html>
-HTML;
-}
-
-
 function Mostrarequipos(){
     session_start();
+
+    require_once "../conexion.php";
+    $conexion = Conexion();
+    // Obtener filtro de categoría
+    $filtro_categorias = isset($_GET['categoria']) ? intval($_GET['categoria']) : null;
+
+    $consulta_categorias = "SELECT categoria_id, nombre FROM categorias";
+    $resultado_categorias = pg_query($conexion, $consulta_categorias);
+    $categorias = pg_fetch_all($resultado_categorias);
+
+    // Construir la consulta para filtrar equipos por categoría
+    $consulta = "SELECT * FROM dispositivos";
+
+   // Definir registros por página y calcular página actual
+   $registros_por_pagina = 10;
+   $pagina_actual = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
+   $offset = ($pagina_actual - 1) * $registros_por_pagina;
 
     echo <<<HTML
     <!DOCTYPE html>
@@ -354,14 +245,22 @@ HTML;
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <select id="category-filter" class="form-select">
-                        <option value="">Filtrar por Categoría</option>
-                        <option value="computadoras">Computadoras</option>
-                        <option value="mouses">Mouses</option>
-                        <option value="teclados">Teclados</option>
-                        <option value="impresoras">Impresoras</option>
+                <form method="get" action="equipos.php">
+                    <input type="hidden" name="accion" value="verequipos">
+                    <select id="category-filter" name="categoria" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todas</option>
+HTML;
+
+    foreach ($categorias as $categoria) {
+        $id = $categoria["categoria_id"];
+        $descripcion = htmlspecialchars($categoria["nombre"]);
+        $selected = ($id == $filtro_categorias) ? "selected" : "";
+        echo "<option value=\"$id\" $selected>$descripcion</option>";
+    }
+
+    echo <<<HTML
                     </select>
-                </div>
+                </form>
             </div>
 
             <!-- Tabla de equipos -->
@@ -378,9 +277,8 @@ HTML;
                             <th>Almacenamiento</th>
                             <th>Dirección MAC</th>
                             <th>Periféricos</th>
-                            <th>Fecha Ingreso</th>
-                            <th>Fecha Modificación</th>
                             <th>Observacion</th>
+                            <th>Categoria</th>
                             <th>Contraseña</th>
 HTML;
 if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
@@ -395,49 +293,69 @@ echo <<<HTML
                     </thead>
                     <tbody id="resultados-equipos">
 HTML;
+$consulta = <<< SQL
+SELECT  dispositivos.dispositivo_id AS id, 
+    dispositivos.dispositivo_marca AS marca, 
+    dispositivos.dispositivo_modelo AS modelo, 
+    dispositivos.dispositivo_ram AS ram, 
+    dispositivos.dispositivo_procesador AS procesador, 
+    dispositivos.dispositivo_almacenamiento AS almacenamiento, 
+    dispositivos.dispositivo_perifericos AS perifericos, 
+    dispositivos.dispositivo_nombre_usuario AS nombre, 
+    dispositivos.fecha_registro AS fecha_registro, 
+    dispositivos.fecha_modificacion AS fecha_modificacion, 
+    dispositivos.dispositivo_direccion_mac AS dir_mac,
+    dispositivos.observacion AS observacion,
+    dispositivos.dispositivo_contraseña AS contraseña,
+    dispositivos.categoria_id AS categorias,
+    c.nombre AS categoria_descripcion
+FROM dispositivos 
+JOIN categorias c ON dispositivos.categoria_id = c.categoria_id
+SQL;
 
-        include_once "../conexion.php";
-        $conexion = Conexion();
-        $consulta = "SELECT * FROM dispositivos ORDER BY dispositivo_id"; // Paginar con LIMIT
-        $query = pg_query($conexion, $consulta);
-        $equipos = pg_fetch_all($query);
+//echo "<br><br>".$consulta;
+
+if ($filtro_categorias) {
+$consulta .= " WHERE dispositivos.categoria_id = $filtro_categorias";
+}
+
+$consulta .= " ORDER BY dispositivos.dispositivo_id LIMIT $registros_por_pagina OFFSET $offset";
+
+//echo $consulta;
+$query = pg_query($conexion, $consulta);
+$equipos = pg_fetch_all($query);
 
         if ($equipos) {
             foreach ($equipos as $equipo) {
                 $id_encriptado = base64_encode($equipo['dispositivo_id']);
-                $fecha_modificacion = !empty($equipo['fecha_modificacion']) ? $equipo['fecha_modificacion'] : 'Sin modificación';
-
                 echo <<<HTML
                 <tr>
-                    <td>{$equipo['dispositivo_id']}</td>
-                    <td>{$equipo['dispositivo_nombre_usuario']}</td>
-                    <td>{$equipo['dispositivo_marca']}</td>
-                    <td>{$equipo['dispositivo_modelo']}</td>
-                    <td>{$equipo['dispositivo_ram']}</td>
-                    <td>{$equipo['dispositivo_procesador']}</td>
-                    <td>{$equipo['dispositivo_almacenamiento']}</td>
-                    <td>{$equipo['dispositivo_direccion_mac']}</td>
-                    <td>{$equipo['dispositivo_perifericos']}</td>
-                    <td>{$equipo['fecha_registro']}</td>
-                    <td>{$fecha_modificacion}</td>
+                    <td>{$equipo['id']}</td>
+                    <td>{$equipo['nombre']}</td>
+                    <td>{$equipo['marca']}</td>
+                    <td>{$equipo['modelo']}</td>
+                    <td>{$equipo['ram']}</td>
+                    <td>{$equipo['procesador']}</td>
+                    <td>{$equipo['almacenamiento']}</td>
+                    <td>{$equipo['dir_mac']}</td>
+                    <td>{$equipo['perifericos']}</td>
                     <td>{$equipo['observacion']}</td>
-                    <td>{$equipo['dispositivo_contraseña']}</td>
+                    <td>{$equipo['categoria_descripcion']}</td>
+                    <td>{$equipo['contraseña']}</td>
 HTML;
-if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
-    echo <<<HTML
+                    if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
+                        echo <<<HTML
                     <td>
                         <a href="equipos.php?accion=modificar&id={$id_encriptado}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-pen"></i> Modificar
+                            Modificar
                         </a>
-                        <a href="equipos.php?accion=eliminar&id={$id_encriptado}" onclick="return confirm('¿Estás seguro de que deseas eliminar este equipo?')" class="btn btn-sm btn-danger">
-                            <i class="fas fa-trash"></i> Eliminar
+                        <a href="equipos.php?accion=eliminar&id={$id_encriptado}" onclick="return confirm('¿Estás seguro?')" class="btn btn-sm btn-danger">
+                            Eliminar
                         </a>
                     </td>
                 </tr>
 HTML;
-}elseif (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "usuario") {
-    
-}
+                    }
             }
         } else {
             echo <<<HTML
@@ -451,18 +369,32 @@ HTML;
                     </tbody>
                 </table>
             </div>
+HTML;
 
-            <!-- Paginación -->
-            <nav>
-                <ul class="pagination justify-content-center">
-                    <li class="page-item"><a class="page-link" href="#">Anterior</a></li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">Siguiente</a></li>
-                </ul>
-            </nav>
-        </div>
+        // Contar total de registros
+        $consulta_total = "SELECT COUNT(*) AS total FROM dispositivos";
+        if ($filtro_categorias) {
+            $consulta_total .= " WHERE categoria_id = $filtro_categorias";
+        }
+        $resultado_total = pg_query($conexion, $consulta_total);
+        $total_registros = pg_fetch_result($resultado_total, 0, 'total');
+        $total_paginas = ceil($total_registros / $registros_por_pagina);
+
+        // Paginación
+        echo '<nav class="d-flex justify-content-center">';
+        echo '<ul class="pagination">';
+        for ($i = 1; $i <= $total_paginas; $i++) {
+            $active = $i == $pagina_actual ? 'active' : '';
+            echo <<<HTML
+            <li class="page-item $active">
+                <a class="page-link" href="equipos.php?accion=verequipos&page=$i&categoria=$filtro_categorias">$i</a>
+            </li>
+HTML;
+        }
+        echo '</ul>';
+        echo '</nav>';
+    }
+    echo <<<HTML
         <div class="text-center my-4">
                 <a href="equipos.php?accion=aggequipos" class="btn btn-outline-secondary">
                     <i class="fas fa-user-plus"></i> Agregar Equipos
@@ -478,26 +410,7 @@ HTML;
 
         <script src="../js/buscar.js">
         </script>
-        <script>
-            $(document).ready(function() {
-                $('#category-filter').change(function() {
-                    const categoria = $(this).val();
-                    // Implementar filtro dinámico por categoría
-                    console.log('Filtrar por:', categoria);
-                });
-            });
-        </script>
 HTML;
-    } else {
-        echo <<<HTML
-        <div class="container mt-5 text-center">
-            <p>Para continuar, inicia sesión.</p>
-            <a href="../vistas/login.php?accion=login-html" class="btn btn-primary">Iniciar sesión</a>
-
-        </div>
-        
-HTML;
-    }
 
     echo <<<HTML
       <!-- Botón para agregar usuarios -->
@@ -506,7 +419,512 @@ HTML;
     </html>
 HTML;
 }
+
+
+function Mostrarequipos02()
+{
+    session_start();
+    require_once "../conexion.php";
+
+    $conexion = Conexion();
+
+
+    if (!isset($_SESSION["nombre"])) {
+        header("Location: ../vistas/login.php?accion=login-html&mensaje=inicia sesion para continuar");
+        exit();
+    }
     
+     // Obtener filtro de categoría
+     $filtro_categorias = isset($_GET['categoria']) ? intval($_GET['categoria']) : null;
+
+     $consulta_categorias = "SELECT categoria_id, nombre FROM categorias";
+     $resultado_categorias = pg_query($conexion, $consulta_categorias);
+     $categorias = pg_fetch_all($resultado_categorias);
+ 
+     // Construir la consulta para filtrar equipos por categoría
+     $consulta = "SELECT * FROM dispositivos";
+
+    // Definir registros por página y calcular página actual
+    $registros_por_pagina = 10;
+    $pagina_actual = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
+    $offset = ($pagina_actual - 1) * $registros_por_pagina;
+    echo <<<HTML
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <title>Tabla de equipos</title>
+        <style>
+            @media (max-width: 768px) {
+                .table-responsive {
+                    overflow-x: auto;
+                }
+            }
+        </style>
+    </head>
+    <body>
+HTML;
+
+    if (isset($_SESSION["nombre"])) {
+        $nombreUsuario = htmlspecialchars($_SESSION["nombre"]);
+        echo <<<HTML
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <input type="hidden" id="role" value="{$_SESSION['descripcion']}">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="../index.php">Inventario SmartInfo</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <span class="nav-link text-white">Hola, $nombreUsuario</span>
+                        </li>
+                        <li class="nav-item">
+                            <form action="./usuarios.php?accion=cerrar" method="post" style="display: inline;">
+                                <button class="btn btn-danger nav-link" type="submit">Cerrar Sesión</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+HTML;
+
+        echo <<<HTML
+        <div class="container mt-4">
+            <h3 class="text-center text-secondary">Equipos</h3>
+            <!-- Barra de búsqueda y filtros -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="search" id="search" class="form-control" placeholder="Buscar...">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                <form method="get" action="equipos.php">
+                    <input type="hidden" name="accion" value="verequipos">
+                    <select id="category-filter" name="categoria" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todas</option>
+HTML;
+
+    foreach ($categorias as $categoria) {
+        $id = $categoria["categoria_id"];
+        $descripcion = htmlspecialchars($categoria["nombre"]);
+        $selected = ($id == $filtro_categorias) ? "selected" : "";
+        echo "<option value=\"$id\" $selected>$descripcion</option>";
+    }
+
+    echo <<<HTML
+                    </select>
+                </form>
+            </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Memoria RAM</th>
+                            <th>Procesador</th>
+                            <th>Almacenamiento</th>
+                            <th>Dirección MAC</th>
+                            <th>Periféricos</th>
+                            <th>Observación</th>
+                            <th>Categoria</th>
+                            <th>Contraseña</th>
+HTML;
+            if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
+                        echo <<<HTML
+                           <th>Acciones</th>
+HTML;
+                            }
+                            echo <<<HTML
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-equipos">
+HTML;
+// Consulta con paginación
+$consulta = <<< SQL
+SELECT  dispositivos.dispositivo_id AS id, 
+    dispositivos.dispositivo_marca AS marca, 
+    dispositivos.dispositivo_modelo AS modelo, 
+    dispositivos.dispositivo_ram AS ram, 
+    dispositivos.dispositivo_procesador AS procesador, 
+    dispositivos.dispositivo_almacenamiento AS almacenamiento, 
+    dispositivos.dispositivo_perifericos AS perifericos, 
+    dispositivos.dispositivo_nombre_usuario AS nombre, 
+    dispositivos.fecha_registro AS fecha_registro, 
+    dispositivos.fecha_modificacion AS fecha_modificacion, 
+    dispositivos.dispositivo_direccion_mac AS dir_mac,
+    dispositivos.observacion AS observacion,
+    dispositivos.dispositivo_contraseña AS contraseña,
+    dispositivos.categoria_id AS categorias,
+    c.nombre AS categoria_descripcion
+FROM dispositivos 
+JOIN categorias c ON dispositivos.categoria_id = c.categoria_id
+SQL;
+
+//echo "<br><br>".$consulta;
+
+if ($filtro_categorias) {
+$consulta .= " WHERE dispositivos.categoria_id = $filtro_categorias";
+}
+
+$consulta .= " ORDER BY dispositivos.dispositivo_id LIMIT $registros_por_pagina OFFSET $offset";
+
+//echo $consulta;
+$query = pg_query($conexion, $consulta);
+$equipos = pg_fetch_all($query);
+
+        if ($equipos) {
+            foreach ($equipos as $equipo) {
+                $id_encriptado = base64_encode($equipo['dispositivo_id']);
+                echo <<<HTML
+                <tr>
+                    <td>{$equipo['id']}</td>
+                    <td>{$equipo['nombre']}</td>
+                    <td>{$equipo['marca']}</td>
+                    <td>{$equipo['modelo']}</td>
+                    <td>{$equipo['ram']}</td>
+                    <td>{$equipo['procesador']}</td>
+                    <td>{$equipo['almacenamiento']}</td>
+                    <td>{$equipo['dir_mac']}</td>
+                    <td>{$equipo['perifericos']}</td>
+                    <td>{$equipo['observacion']}</td>
+                    <td>{$equipo['categoria_descripcion']}</td>
+                    <td>{$equipo['contraseña']}</td>
+HTML;
+                    if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
+                        echo <<<HTML
+                    <td>
+                        <a href="equipos.php?accion=modificar&id={$id_encriptado}" class="btn btn-sm btn-primary">
+                            Modificar
+                        </a>
+                        <a href="equipos.php?accion=eliminar&id={$id_encriptado}" onclick="return confirm('¿Estás seguro?')" class="btn btn-sm btn-danger">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+HTML;
+                    }
+            }
+        } else {
+            echo <<<HTML
+            <tr>
+                <td colspan="12" class="text-center">No hay equipos registrados.</td>
+            </tr>
+HTML;
+        }
+
+        echo <<<HTML
+                    </tbody>
+                </table>
+            </div>
+HTML;
+
+        // Contar total de registros
+        $consulta_total = "SELECT COUNT(*) AS total FROM dispositivos";
+        if ($filtro_categorias) {
+            $consulta_total .= " WHERE categoria_id = $filtro_categorias";
+        }
+        $resultado_total = pg_query($conexion, $consulta_total);
+        $total_registros = pg_fetch_result($resultado_total, 0, 'total');
+        $total_paginas = ceil($total_registros / $registros_por_pagina);
+
+        // Paginación
+        echo '<nav class="d-flex justify-content-center">';
+        echo '<ul class="pagination">';
+        for ($i = 1; $i <= $total_paginas; $i++) {
+            $active = $i == $pagina_actual ? 'active' : '';
+            echo <<<HTML
+            <li class="page-item $active">
+                <a class="page-link" href="equipos.php?accion=verequipos&page=$i&categoria=$filtro_categorias">$i</a>
+            </li>
+HTML;
+        }
+        echo '</ul>';
+        echo '</nav>';
+    }
+
+    echo <<<HTML
+
+        <div class="text-center my-4">
+                <a href="equipos.php?accion=aggequipos" class="btn btn-outline-secondary">
+                    <i class="fas fa-user-plus"></i> Agregar Equipos
+                </a>
+            </div>
+
+            <!-- Botón para volver al inicio -->
+            <div class="text-center">
+                <a href="../index.php" class="btn btn-outline-secondary">
+                    <i class="fas fa-house"></i> Volver al inicio
+                </a>
+            </div>
+            <script src="../js/buscar.js"></script>
+    </body>
+    </html>
+HTML;
+}
+
+
+
+
+
+
+
+
+function Mostrarequipos000()
+{
+    session_start();
+    require_once "../conexion.php";
+
+    $conexion = Conexion();
+
+
+    if (!isset($_SESSION["nombre"])) {
+        header("Location: ../vistas/login.php?accion=login-html&mensaje=inicia sesion para continuar");
+        exit();
+    }
+    
+     // Obtener filtro de categoría
+     $filtro_categorias = isset($_GET['categoria']) ? intval($_GET['categoria']) : null;
+
+     $consulta_categorias = "SELECT categoria_id, nombre FROM categorias";
+     $resultado_categorias = pg_query($conexion, $consulta_categorias);
+     $categorias = pg_fetch_all($resultado_categorias);
+ 
+     // Construir la consulta para filtrar equipos por categoría
+     $consulta = "SELECT * FROM dispositivos";
+
+    // Definir registros por página y calcular página actual
+    $registros_por_pagina = 10;
+    $pagina_actual = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
+    $offset = ($pagina_actual - 1) * $registros_por_pagina;
+
+    echo <<<HTML
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <title>Tabla de equipos</title>
+        <style>
+            @media (max-width: 768px) {
+                .table-responsive {
+                    overflow-x: auto;
+                }
+            }
+        </style>
+    </head>
+    <body>
+HTML;
+
+    if (isset($_SESSION["nombre"])) {
+        $nombreUsuario = htmlspecialchars($_SESSION["nombre"]);
+        echo <<<HTML
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <input type="hidden" id="role" value="{$_SESSION['descripcion']}">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="../index.php">Inventario SmartInfo</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <span class="nav-link text-white">Hola, $nombreUsuario</span>
+                        </li>
+                        <li class="nav-item">
+                            <form action="./usuarios.php?accion=cerrar" method="post" style="display: inline;">
+                                <button class="btn btn-danger nav-link" type="submit">Cerrar Sesión</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+HTML;
+
+        echo <<<HTML
+        <div class="container mt-4">
+            <h3 class="text-center text-secondary">Equipos</h3>
+            <!-- Barra de búsqueda y filtros -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="search" id="search" class="form-control" placeholder="Buscar...">
+                        <!--<button class="btn btn-outline-secondary" type="button">Buscar</button>-->
+                    </div>
+                </div>
+                <div class="col-md-6">
+                <form method="get" action="equipos.php">
+                    <input type="hidden" name="accion" value="verequipos">
+                    <select id="category-filter" name="categoria" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todas</option>
+HTML;
+
+    foreach ($categorias as $categoria) {
+        $id = $categoria["categoria_id"];
+        $descripcion = htmlspecialchars($categoria["nombre"]);
+        $selected = ($id == $filtro_categorias) ? "selected" : "";
+        echo "<option value=\"$id\" $selected>$descripcion</option>";
+    }
+
+    echo <<<HTML
+                    </select>
+                </form>
+            </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Memoria RAM</th>
+                            <th>Procesador</th>
+                            <th>Almacenamiento</th>
+                            <th>Dirección MAC</th>
+                            <th>Periféricos</th>
+                            <th>Categoria</th>
+                            <th>Observación</th>
+                            <th>Contraseña</th>
+HTML;
+            if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
+                        echo <<<HTML
+                           <th>Acciones</th>
+HTML;
+                            }
+                            echo <<<HTML
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-equipos">
+HTML;
+
+        // Consulta con paginación
+        $consulta = "SELECT * 
+             FROM dispositivos d
+             JOIN categorias c ON d.categoria_id = c.categoria_id";
+
+if ($filtro_categorias) {
+    $consulta .= " WHERE d.categoria_id = $filtro_categorias";
+}
+
+$consulta .= " ORDER BY d.dispositivo_id LIMIT $registros_por_pagina OFFSET $offset";
+
+       echo $consulta;
+        $query = pg_query($conexion, $consulta);
+        $equipos = pg_fetch_all($query);
+
+        if ($equipos) {
+            foreach ($equipos as $equipo) {
+                $id_encriptado = base64_encode($equipo['dispositivo_id']);
+                echo <<<HTML
+                <tr>
+                    <td>{$equipo['dispositivo_id']}</td>
+                    <td>{$equipo['dispositivo_nombre_usuario']}</td>
+                    <td>{$equipo['dispositivo_marca']}</td>
+                    <td>{$equipo['dispositivo_modelo']}</td>
+                    <td>{$equipo['dispositivo_ram']}</td>
+                    <td>{$equipo['dispositivo_procesador']}</td>
+                    <td>{$equipo['dispositivo_almacenamiento']}</td>
+                    <td>{$equipo['dispositivo_direccion_mac']}</td>
+                    <td>{$equipo['dispositivo_perifericos']}</td>
+                    <td>{$equipo['nombre']}</td>
+                    <td>{$equipo['observacion']}</td>
+                    <td>{$equipo['dispositivo_contraseña']}</td>
+HTML;
+                    if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
+                        echo <<<HTML
+                    <td>
+                        <a href="equipos.php?accion=modificar&id={$id_encriptado}" class="btn btn-sm btn-primary">
+                            Modificar
+                        </a>
+                        <a href="equipos.php?accion=eliminar&id={$id_encriptado}" onclick="return confirm('¿Estás seguro?')" class="btn btn-sm btn-danger">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+HTML;
+                    }
+            }
+        } else {
+            echo <<<HTML
+            <tr>
+                <td colspan="12" class="text-center">No hay equipos registrados.</td>
+            </tr>
+HTML;
+        }
+
+        echo <<<HTML
+                    </tbody>
+                </table>
+            </div>
+HTML;
+
+        // Contar total de registros
+        $consulta_total = "SELECT COUNT(*) AS total FROM dispositivos";
+        $resultado_total = pg_query($conexion, $consulta_total);
+        $total_registros = pg_fetch_result($resultado_total, 0, 'total');
+        $total_paginas = ceil($total_registros / $registros_por_pagina);
+
+        // Paginación
+        echo '<nav class="d-flex justify-content-center">';
+        echo '<ul class="pagination">';
+        for ($i = 1; $i <= $total_paginas; $i++) {
+            $active = $i == $pagina_actual ? 'active' : '';
+            echo <<<HTML
+            <li class="page-item $active">
+                <a class="page-link" href="equipos.php?accion=verequipos&page=$i">$i</a>
+            </li>
+HTML;
+        }
+        echo '</ul>';
+        echo '</nav>';
+    } else {
+    }
+
+    echo <<<HTML
+    <script>
+        $(document).ready(function () {
+            $('#buscador').on('keyup', function () {
+                var valor = $(this).val().toLowerCase();
+                $('#tabla-equipos tr').filter(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(valor) > -1);
+                });
+            });
+        });
+    </script>
+    
+        <div class="text-center my-4">
+                <a href="equipos.php?accion=aggequipos" class="btn btn-outline-secondary">
+                    <i class="fas fa-user-plus"></i> Agregar Equipos
+                </a>
+            </div>
+
+            <!-- Botón para volver al inicio -->
+            <div class="text-center">
+                <a href="../index.php" class="btn btn-outline-secondary">
+                    <i class="fas fa-house"></i> Volver al inicio
+                </a>
+            </div>
+            <script src="../js/buscar.js"></script>
+    </body>
+    </html>
+HTML;
+}
+
 //
                                             //${encodeURIComponent(idencriptado)}  ${encodeURIComponent(idencriptado)}
 function Principal() {
@@ -538,6 +956,9 @@ HTML;
         echo <<<HTML
                     <li class="nav-item">
                         <span class="nav-link text-white">Hola, $nombreUsuario</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="./vistas/usuarios.php?accion=perfil">Perfil</a>
                     </li>
                     <li class="nav-item">
                         <form action="./vistas/usuarios.php?accion=cerrar" method="post" style="display: inline;">
@@ -594,7 +1015,7 @@ HTML;
                     <div class="card-body text-center">
                         <h5 class="card-title">Productos</h5>
                         <p class="card-text">Añade, edita o elimina productos de tu inventario.</p>
-                        <a href="#" class="btn btn-primary">Gestionar</a>
+                        <a href="./vistas/equipos.php?accion=verequipos" class="btn btn-primary">Gestionar</a>
                     </div>
                 </div>
             </div>
@@ -1250,6 +1671,7 @@ function Mostrar_usuarios()
                     </div>
                 </div>
                 <form method="get" action="usuarios.php?accion=ver&">
+                <input type="hidden" name="accion" value="ver">
                     <select name="cargo" class="form-select w-50 d-inline" onchange="this.form.submit()">
                         <option value="">Todos los cargos</option>
 HTML;
@@ -1397,9 +1819,9 @@ function Login_html() {
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/d6ecbc133f.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="../../css/cargando.css">
+    <!--<link rel="stylesheet" href="../../css/cargando.css">-->
     <link rel="stylesheet" href="../css/login.css">
-    <script src="../js/cargando.js"></script>
+    <!--<script src="../js/cargando.js"></script>-->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicia Sesión</title>

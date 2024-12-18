@@ -1,4 +1,5 @@
 console.log("buscar");
+var role = document.getElementById('role').value;  // Si usaste un input oculto
 function buscarUsuarios() {
     $("#search").keyup(function () {
         let search = $("#search").val(); // Captura el valor del input
@@ -18,6 +19,25 @@ function buscarUsuarios() {
                                 tasks.forEach((task) => {
                                     // Encripta el ID usando btoa (base64)
                                     let idencriptado = btoa(task.id);
+
+                                    let acciones = '';
+                                        if (role === "administrador") {
+                                            cargo = `<td>${task.cargo}</td>`;
+                                            acciones = `
+                                            <td>
+                                                <a href='equipos.php?accion=modificar&id=${encodeURIComponent(idencriptado)}'>
+                                                    <i class='fa-solid fa-pen'></i> Modificar
+                                                </a>
+                                                <a href='equipos.php?accion=eliminar&id=${encodeURIComponent(idencriptado)}' onclick='return pregunta()'>
+                                                    <i class='fa-solid fa-trash'></i> Eliminar
+                                                </a>
+                                                </td>
+                                            `;
+                                        }else if (role === "usuario"){
+                                            acciones = ``;
+                                        }
+
+
                                     template += `
                                         <tr> 
                                             <td>${task.id}</td>
@@ -29,20 +49,13 @@ function buscarUsuarios() {
                                             <td>${task.almacenamiento}</td>
                                             <td>${task.dir_mac}</td>
                                             <td>${task.perifericos}</td>
-                                            <td>${task.fecha_registro}</td>
-                                            <td>${task.fecha_modificacion}</td>
-                                            <td>${task.observacion}</td>
+                                            <td>${task.observaciones}</td>
+                                            <td>${task.categoria}</td>
                                             <td>${task.contraseña}</td>
-                                            <td>
-                                                <a href='equipos.php?accion=modificar&id=${encodeURIComponent(idencriptado)}'>
-                                                    <i class='fa-solid fa-pen'>modificar</i>
-                                                </a>
-                                                <a href='productos.php?accion=eliminar&id=${encodeURIComponent(idencriptado)}' onclick='return pregunta()'>
-                                                    <i class='fa-solid fa-trash'>eliminar</i>
-                                                </a>
-                                            </td>
+                                                ${acciones}
                                         </tr>
                                     `;
+
                                 });
                                 $("#resultados-equipos").html(template); // Insertar la tabla en el HTML
                             } else {

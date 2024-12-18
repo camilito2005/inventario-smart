@@ -14,6 +14,7 @@ function RegistrarEquipos()
     $direccion_mac = filter_input(INPUT_POST, 'dir-mac', FILTER_SANITIZE_STRING);
     $observacion = filter_input(INPUT_POST, 'observacion', FILTER_SANITIZE_STRING);
     $contraseña = filter_input(INPUT_POST, 'contraseña', FILTER_SANITIZE_STRING);
+    $categoria = filter_input(INPUT_POST, 'categoria', FILTER_SANITIZE_STRING);
 
     // Validar que todos los campos estén completos
     if (empty($nombre) || empty($marca) || empty($modelo) || empty($ram) || empty($procesador) || empty($almacenamiento) || empty($perifericos) || empty($contraseña)) {
@@ -45,9 +46,9 @@ function RegistrarEquipos()
     $fecha = date('Y-m-d H:i:s');
 
     // Insertar los datos en la tabla equipos
-    $consulta = "INSERT INTO dispositivos ( dispositivo_marca, dispositivo_modelo, dispositivo_ram, dispositivo_procesador, dispositivo_almacenamiento, dispositivo_perifericos,dispositivo_nombre_usuario,dispositivo_direccion_mac, observacion, dispositivo_contraseña,fecha_registro) 
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,$10,$11)";
-    $result = pg_query_params($conexion, $consulta, array($marca, $modelo, $ram, $procesador, $almacenamiento, $perifericos,$nombre, $direccion_mac,$observacion,$contraseña, $fecha));
+    $consulta = "INSERT INTO dispositivos ( dispositivo_marca, dispositivo_modelo, dispositivo_ram, dispositivo_procesador, dispositivo_almacenamiento, dispositivo_perifericos,dispositivo_nombre_usuario,dispositivo_direccion_mac, observacion,categoria_id, dispositivo_contraseña,fecha_registro) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,$10,$11,$12)";
+    $result = pg_query_params($conexion, $consulta, array($marca, $modelo, $ram, $procesador, $almacenamiento, $perifericos,$nombre, $direccion_mac, $observacion,$categoria,$contraseña, $fecha));
 
     if ($result) {
         echo "<script>alert('Equipo registrado correctamente.');</script>";
@@ -73,7 +74,7 @@ function modificarEquipos000(){
         "cargo_id" => $_POST["cargo_id"]
     ];
 
-    include_once "../../conexion.php";
+    include_once "../conexion.php";
     $conexion = Conexion();
 
     // Validar el formato del correo
@@ -123,6 +124,7 @@ function Actualizar_equipos() {
     $perifericos = filter_input(INPUT_POST, 'perifericos', FILTER_SANITIZE_STRING);
     $direccion_mac = filter_input(INPUT_POST, 'dir-mac', FILTER_SANITIZE_STRING);
     $observacion = filter_input(INPUT_POST, 'observacion', FILTER_SANITIZE_STRING);
+    $categorias = filter_input(INPUT_POST, 'categoria', FILTER_SANITIZE_STRING);
     $contraseña = filter_input(INPUT_POST, 'contraseña', FILTER_SANITIZE_STRING);
 
 
@@ -163,15 +165,15 @@ function Actualizar_equipos() {
     // Consulta parametrizada segura
     $consulta = <<<SQL
         UPDATE dispositivos
-        SET dispositivo_nombre_usuario = $1, dispositivo_marca = $2, dispositivo_modelo = $3, dispositivo_ram = $4, dispositivo_procesador = $5, dispositivo_almacenamiento = $6, dispositivo_perifericos = $7, fecha_modificacion = $8 ,dispositivo_direccion_mac = $9, observacion = $10,dispositivo_contraseña = $11
-        WHERE dispositivo_id = $12
+        SET dispositivo_nombre_usuario = $1, dispositivo_marca = $2, dispositivo_modelo = $3, dispositivo_ram = $4, dispositivo_procesador = $5, dispositivo_almacenamiento = $6, dispositivo_perifericos = $7, fecha_modificacion = $8 ,dispositivo_direccion_mac = $9, observacion = $10, categoria_id = $11 , dispositivo_contraseña = $12
+        WHERE dispositivo_id = $13
 SQL;
 
     // Ejecutar la consulta de manera segura
     $resultado_consulta = pg_query_params(
         $conexion,
         $consulta,
-        [$nombre, $marca, $modelo, $ram, $procesador, $almacenamiento, $perifericos, $fecha,$direccion_mac,$observacion,$contraseña, $id]
+        [$nombre, $marca, $modelo, $ram, $procesador, $almacenamiento, $perifericos, $fecha,$direccion_mac,$observacion,$categorias,$contraseña, $id]
     );
 
     if ($resultado_consulta) {
@@ -225,6 +227,11 @@ function Modificar_equipos()
         //echo "id: ".$id;
         // Valida el id descifrado antes de usarlo en la consulta
     }
+    $consulta = <<<SQL
+    SELECT categoria_id, nombre FROM categorias
+SQL;
+    $resultado_consulta = pg_query($conexion,$consulta);
+    $categorias= pg_fetch_all($resultado_consulta);
 
     // Consulta para obtener la información del usuario
     $consulta_usuario = "SELECT * FROM dispositivos WHERE dispositivo_id = $1";
@@ -313,6 +320,18 @@ function Modificar_equipos()
                     <label class="form-label">Observacion</label>
                     <input type="text" class="form-control" name="observacion" value="{$usuario->observacion}">
                 </div>
+                <div class="col-md-6">
+                <label for="">Filtrar por Categoría</label>
+                <select id="category-filter" class="form-select" name="categoria">
+HTML;
+                foreach ($categorias as $categoria) {
+                    $id = $categoria["categoria_id"];
+                    $descripcion = $categoria["nombre"];
+                    echo "<option value=\"$id\">$descripcion</option>";
+                }
+    echo <<<HTML
+                    </select>
+                </div>
                 <div class="mb-3">
                     <label class="form-label">Contraseña</label>
                     <input type="text" class="form-control" name="contraseña" value="{$usuario->dispositivo_contraseña}">
@@ -365,12 +384,17 @@ SELECT
     dispositivos.fecha_modificacion AS fecha_modificacion, 
     dispositivos.dispositivo_direccion_mac AS dir_mac,
     dispositivos.observacion AS observacion,
-    dispositivos.dispositivo_contraseña AS contraseña
+    dispositivos.dispositivo_contraseña AS contraseña,
+    dispositivos.categoria_id AS categorias,
+    c.nombre AS categoria_descripcion
 FROM 
     dispositivos
+JOIN categorias c ON dispositivos.categoria_id = c.categoria_id
 WHERE 
     dispositivos.dispositivo_nombre_usuario ILIKE $1;
 SQL;
+
+//echo $consulta;
 
 $resultado_consulta = pg_query_params($conexion, $consulta, ["%$search%"]);
 
@@ -393,11 +417,10 @@ $resultado_consulta = pg_query_params($conexion, $consulta, ["%$search%"]);
                     "almacenamiento"   => $filas["almacenamiento"],
                     "perifericos"      => $filas["perifericos"],
                     "nombre"  => $filas["nombre"],
-                    "fecha_registro"  => $filas["fecha_registro"],
-                    "fecha_modificacion"  => $filas["fecha_modificacion"],
                     "dir_mac"  => $filas["dir_mac"],
-                    "observacion"  => $filas["observacion"],
-                    "contraseña"  => $filas["contraseña"]
+                    "observaciones"  => $filas["observacion"],
+                    "contraseña"  => $filas["contraseña"],
+                    "categoria"  => $filas["categoria_descripcion"]
                 ];
             }
             echo json_encode($array);

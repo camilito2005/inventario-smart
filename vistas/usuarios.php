@@ -31,4 +31,7 @@ if ($accion == "buscar") {
     $search = $_REQUEST["search"];
     Buscar($search);
 }
+if ($accion == "perfil") {
+    Perfil();
+}
 ?>
