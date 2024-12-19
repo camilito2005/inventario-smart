@@ -657,10 +657,8 @@ function Perfil() {
     if (isset($_GET['login_success']) && $_GET['login_success'] == 1) {
         echo "<script>alert('Inicio de sesión exitoso. ¡Bienvenido!');</script>";
     }
-    
+
     echo <<<HTML
-
-
     <!DOCTYPE html>
     <html lang="es">
     <head>
@@ -668,19 +666,18 @@ function Perfil() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Perfil de Usuario</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
-        <!--<link rel="stylesheet" href="../../css/perfil.css">-->
     </head>
     <body>
 HTML;
-Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$ruta_categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
+
+    Menu($inicio="../index.php", $ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil", $cerrar="./usuarios.php?accion=cerrar", $login="./login.php?accion=login-html", $aggequipos="./equipos.php?accion=verequipos", $ruta_categorias="./categorias.php?accion=vercategorias", $reportes="./estadisticas.php?accion=masmarcas", $verusuario="./usuarios.php?accion=ver");
 
     echo <<<HTML
-    <div class="container">
-        <h1 class="center-align">Perfil de Usuario</h1>
+    <div class="container mt-5">
+        <h1 class="text-center">Perfil de Usuario</h1>
         <div class="card">
-            <div class="card-content">
-                <span class="card-title">Información del Usuario</span>
+            <div class="card-body">
+                <h5 class="card-title">Información del Usuario</h5>
 HTML;
 
     if (isset($_SESSION["correo"])) {
@@ -693,130 +690,101 @@ HTML;
             <p><strong>Telefono: {$_SESSION["telefono"]}</strong></p>
             <p><strong>Direccion: {$_SESSION["direccion"]}</strong></p>
             <p><strong>Correo: {$_SESSION["correo"]}</strong></p>
-            <p><strong>Documento: {$_SESSION["dni"]}</strong></p>
-            <div class="card-action">
-                <a class="btn blue modal-trigger" href="#editModal">Editar</a>
-                <a href="../usuarios/usuarios.php?accion=cerrar" class="btn red">Cerrar sesión</a>
+            <div class="d-flex justify-content-between mt-3">
+                <a class="btn btn-primary" href="#editModal" data-bs-toggle="modal">Editar</a>
+                <a href="../usuarios/usuarios.php?accion=cerrar" class="btn btn-danger">Cerrar sesión</a>
             </div>
 HTML;
     } else {
         echo <<<HTML
             <p>Para continuar, inicia sesión.</p>
-            <a href="../pagina-principal/login.php?accion=login" class="btn blue btn-login">Iniciar sesión</a>
+            <a href="../pagina-principal/login.php?accion=login" class="btn btn-primary">Iniciar sesión</a>
 HTML;
     }
-
-    // Variables de sesión
-    $id = $_SESSION["id"];
-    $dni = $_SESSION["dni"];
-    $nombre = $_SESSION["nombre"];
-    $apellido = $_SESSION["apellido"];
-    $telefono = $_SESSION["telefono"];
-    $direccion = $_SESSION["direccion"];
-    $correo = $_SESSION["correo"];
-    $contraseña = $_SESSION["contraseña"];
-    $cargo_id = $_SESSION["rol_id"];
 
     echo <<<HTML
             </div>
         </div>
     </div>
 
-    <!-- Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <h4>Editar Perfil</h4>
-            <form action="../../librerias/lib_configuracion.php?accion=actualizar&id={$id}&" method="POST">
-            <!--<form action="perfil.php?accion=actualizar&id={$id}" method="POST">-->
-                <div class="input-field">
-                    <input disabled type="text" name="id" value="{$id}" required>
-                    <label for="identificador">Identificador</label>
+    <!-- Modal de Edición -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Editar Perfil</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="input-field">
-                    <input type="hidden" name="id" value="{$id}" required>
-                </div>
-                <div class="input-field">
-                    <input type="text" disabled name="dni" value="{$dni}" required>
-                    <label for="dni">Documento</label>
-                </div>
-                <div class="input-field">
-                    <input type="hidden" name="dni" value="{$dni}" required>
-                </div>
-                <div class="input-field">
-                    <input type="text" name="nombre" value="{$nombre}" required>
-                    <label for="nombre">Nombre</label>
-                </div>
-                <div class="input-field">
-                    <input type="text" name="apellido" value="{$apellido}" required>
-                    <label for="apellido">Apellidos</label>
-                </div>
-                <div class="input-field">
-                    <input type="text" name="telefono" value="{$telefono}" required>
-                    <label for="telefono">Teléfono</label>
-                </div>
-                <div class="input-field">
-                    <input type="text" name="direccion" value="{$direccion}" required>
-                    <label for="direccion">Dirección</label>
-                </div>
-                <div class="input-field">
-                    <input type="email" name="correo" value="{$correo}" required>
-                    <label for="correo">Correo</label>
-                </div>
-                <div class="input-field">
-                    <input type="password" name="contraseña" value="{$contraseña}" required>
-                    <label for="contraseña">Contraseña</label>
-                </div>
+                <div class="modal-body">
+                    <form action="../../librerias/lib_configuracion.php?accion=actualizar&id={$id}" method="POST">
+                        <div class="mb-3">
+                            <label for="identificador" class="form-label">Identificador</label>
+                            <input type="text" class="form-control" id="identificador" name="id" value="{$id}" disabled required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="dni" class="form-label">Documento</label>
+                            <input type="text" class="form-control" id="dni" name="dni" value="{$dni}" disabled required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="{$nombre}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="apellido" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="apellido" name="apellido" value="{$apellido}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="telefono" name="telefono" value="{$telefono}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="direccion" name="direccion" value="{$direccion}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="correo" class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="correo" name="correo" value="{$correo}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contraseña" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control" id="contraseña" name="contraseña" value="{$contraseña}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cargo" class="form-label">Cargo</label>
+                            <select class="form-select" name="cargo_id" required>
 HTML;
 
-    echo '<div class="input-field">
-    <label for="cargo">Cargo</label>
-    <select class="browser-default" name="cargo_id">';
-
-    // Usar foreach para iterar sobre los resultados
     foreach ($cargos as $cargo) {
-    $id = $cargo['id'];
-    $descripcion = $cargo['descripcion'];
-    echo "<option value=\"$id\">$descripcion</option>"; // Crear opción
+        $id = $cargo['id'];
+        $descripcion = $cargo['descripcion'];
+        echo "<option value=\"$id\">$descripcion</option>";
     }
 
-    echo '    </select>
-    </div>';
-echo <<<HTML
-                <!--<label for="cargo">Cargo</label>
-                <div class="input-field">
-                    
-                    <select class="browser-default" name="cargo_id">
-                        <option value="1">{$resultado_cargos}</option>
-                        <option value="2">{$resultado_cargos}</option>
-                    </select>
-                </div>-->
-                <div class="modal-footer">
-                    <button type="submit" class="modal-close btn green">Guardar</button>
-                    <a href="#!" class="modal-close btn red">Cancelar</a>
+    echo <<<HTML
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-success">Guardar cambios</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
-    <form id="myForm" action="../index.php" method="post">
-        <button class="btn btn-outline-secondary">
+    <form action="../index.php" method="post">
+        <button class="btn btn-outline-secondary mt-3">
             <i class="fa-solid fa-house"></i> Inicio
         </button>
     </form>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var elems = document.querySelectorAll('.modal');
-            var instances = M.Modal.init(elems);
-        });
-    </script>
-HTML;
-echo <<<HTML
-</body>
-</html>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
 HTML;
 }
+
 function Formulario_enviar_correo() {
     echo <<<HTML
 <!DOCTYPE html>

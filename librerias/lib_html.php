@@ -1355,7 +1355,7 @@ echo<<<HTML
 HTML;
 }
 
-function Formulario_usuarios(){
+function Formulario_usuarios000(){
     session_start();
 
     /*if (!isset($_SESSION["nombre"])) {
@@ -1533,6 +1533,168 @@ echo<<<HTML
 </html>
 HTML;
 }
+
+
+function Formulario_usuarios() {
+    session_start();
+
+    $mensaje = $_REQUEST["mensaje"];
+    $usuario_actual = $_SESSION["nombre"] ;
+
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f7fa;
+        }
+        .card {
+            border-radius: 10px;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .btn-custom {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-custom:hover {
+            background-color: #0056b3;
+        }
+        .mensaje {
+            color: #28a745;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .form-label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+HTML;
+
+    if (isset($_SESSION["nombre"])) {
+        echo <<<HTML
+        <div class="container d-flex justify-content-between align-items-center">
+            <span>Usuario: <strong>$usuario_actual</strong></span>
+            <a href="../vistas/usuarios.php?accion=cerrar" class="btn btn-danger btn-sm">Cerrar sesión</a>
+        </div>
+HTML;
+    }
+
+    echo <<<HTML
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="text-center mb-4">Registro de Usuarios</h4>
+                        <p class="mensaje">{$mensaje}</p>
+                        <form action="usuarios.php?accion=registrar" method="post">
+                            
+                            <div class="mb-3">
+                                <label for="dni" class="form-label">DNI</label>
+                                <input type="text" id="dni" name="dni" class="form-control" required>
+                            </div>
+                            
+HTML;
+
+    if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
+        echo <<<HTML
+                            <div class="mb-3">
+                                <label for="rol" class="form-label">Rol</label>
+                                <select name="rol" id="rol" class="form-select" required>
+                                    <option value="1">Administrador</option>
+                                    <option value="2">Usuario</option>
+                                </select>
+                            </div>
+HTML;
+    } else {
+        echo <<<HTML
+                            <div class="mb-3">
+                                <label for="rol" class="form-label">Rol</label>
+                                <select name="rol" id="rol" class="form-select" required>
+                                    <option value="2">Usuario</option>
+                                </select>
+                            </div>
+HTML;
+    }
+
+    echo <<<HTML
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Nombre</label>
+                                <input type="text" id="nombre" name="nombre" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="apellido" class="form-label">Apellidos</label>
+                                <input type="text" id="apellido" name="apellido" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="telefono" class="form-label">Número Telefónico</label>
+                                <input type="tel" id="telefono" name="telefono" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="direccion" class="form-label">Dirección</label>
+                                <input type="text" id="direccion" name="direccion" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="correo" class="form-label">Correo Electrónico</label>
+                                <input type="email" id="correo" name="correo" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="contraseña" class="form-label">Contraseña</label>
+                                <input type="password" id="contraseña" name="contraseña" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirmar_contraseña" class="form-label">Confirmar Contraseña</label>
+                                <input type="password" id="confirmar_contraseña" name="confirmar_contraseña" class="form-control" required>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-custom w-100">Registrar</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center">
+                        <form action="./usuarios.php?accion=ver" method="post">
+                            <button type="submit" class="btn btn-outline-primary">
+                                Ver Usuarios
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container text-center mt-4">
+        <form action="../index.php" method="post">
+            <button class="btn btn-outline-secondary">
+                <i class="bi bi-house-door"></i> Inicio
+            </button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+HTML;
+}
+
 
 
 function Mostrar_usuarios000()
