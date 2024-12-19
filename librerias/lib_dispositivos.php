@@ -18,8 +18,7 @@ function RegistrarEquipos()
 
     // Validar que todos los campos estén completos
     if (empty($nombre) || empty($marca) || empty($modelo) || empty($ram) || empty($procesador) || empty($almacenamiento) || empty($perifericos) || empty($contraseña)) {
-        echo "Todos los campos son obligatorios.";
-        echo '<a href="formulario_registro_equipos.php">Volver</a>';
+        header("Location: ./equipos.php?accion=aggequipos&mensaje=porfavor, llene los campos");
         exit;
     }
 
@@ -52,11 +51,8 @@ function RegistrarEquipos()
 
     if ($result) {
         echo "<script>alert('Equipo registrado correctamente.');</script>";
-        header("Location: ./equipos.php?accion=verequipos");
-        exit;
     } else {
-        echo "Error al registrar el equipo.";
-        echo '<a href="formulario_registro_equipos.php">Volver</a>';
+        header("Location: ./equipos.php?accion=aggequipos&mensaje=Error al registrar el equipo.");
         exit;
     }
 }
@@ -108,13 +104,10 @@ function Actualizar_equipos() {
     $id = $_GET["id"];
     // Validar que el ID esté presente en la URL
     if (!isset($_GET["id"]) || !is_numeric($_GET["id"])) {
-        echo "ID inválido.";
+        header("Location: equipos.php?accion=modificar&mensaje=ID inválido.");
         exit;
     }
 
-    
-
-    // Validar y sanitizar los datos recibidos del formulario
     $nombre = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_STRING);
     $marca = filter_input(INPUT_POST, 'marca', FILTER_SANITIZE_STRING);
     $modelo = filter_input(INPUT_POST, 'modelo', FILTER_SANITIZE_STRING);
@@ -127,35 +120,6 @@ function Actualizar_equipos() {
     $categorias = filter_input(INPUT_POST, 'categoria', FILTER_SANITIZE_STRING);
     $contraseña = filter_input(INPUT_POST, 'contraseña', FILTER_SANITIZE_STRING);
 
-
-    // echo "<br> nombre: ".$nombre."</br>";
-    // echo "<br> marca :  ".$marca."</br>";
-    // echo "<br> modelo : ".$modelo."</br>";
-    // echo "<br>ram : ".$ram."</br>";
-    // echo "<br> procesador : ".$procesador."</br>";
-    // echo "<br> almacenamiento : ".$almacenamiento."</br>";
-    // echo "<br> perifericos  : ".$perifericos."</br>";
-    // echo "<br> direccion mac : ".$direccion_mac."</br>";
-
-    //Validar campos obligatorios
-     /*if (empty($nombre) || empty($marca) || empty($modelo) || empty($ram) || empty($procesador) || empty($almacenamiento) || $perifericos || $direccion_mac || $observacion || $contraseña) {
-         echo "Todos los campos son obligatorios.";
-        exit;
-     }*/
-    // // Validar formato del correo
-    // if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-    //     echo "El correo no es válido.";
-    //     exit;
-    // }
-    // Validar longitud de la contraseña
-    // if (strlen($contraseña) < 6) {
-    //     echo "La contraseña debe tener al menos 6 caracteres.";
-    //     exit;
-    // }
-    // Cifrar la contraseña (opcional, pero recomendado)
-    //$contraseña_cifrada = password_hash($contraseña, PASSWORD_BCRYPT);
-
-    // Incluir la conexión
     include_once "../conexion.php";
     $conexion = Conexion();
 
@@ -181,8 +145,9 @@ SQL;
         header("Location: equipos.php?accion=verequipos");
         exit;
     } else {
+        header("Location: equipos.php?accion=modificar&mensaje=Error al realizar la operación:");
         // Manejo de errores
-        echo "Error al realizar la operación: " . pg_last_error($conexion);
+        echo " " . pg_last_error($conexion);
     }
 }
 
@@ -220,7 +185,6 @@ function Modificar_equipos()
     include_once "../conexion.php";
     $conexion = Conexion();
     $id = $_GET["id"];
-    //echo "id:".$id;
 
     if (isset($_GET['id'])) {
         $id = base64_decode($_GET['id']);

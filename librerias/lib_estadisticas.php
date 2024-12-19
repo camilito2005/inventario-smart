@@ -90,6 +90,13 @@ function EquiposPorMarca() {
     include_once "../conexion.php";
     $conexion = Conexion();
 
+    session_start();
+    
+    if (!isset($_SESSION["nombre"])) {
+        header("Location: ../vistas/login.php?accion=login-html&mensaje=inicia sesion para continuar");
+        exit();
+    }
+
     // Consulta SQL: Contar equipos agrupados por marca
     $query = "
         SELECT 
@@ -140,6 +147,10 @@ function EquiposPorMarca() {
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     </head>
     <body>
+HTML;
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
+
+echo <<<HTML
         <div class="container mt-4">
             <h2 class="text-center mb-4">Cantidad de Equipos por Marca</h2>
             <canvas id="chartEquipos"></canvas>
@@ -180,6 +191,119 @@ function EquiposPorMarca() {
     </html>
 HTML;
 }
+
+function Estadisticas() {
+// Conexión a la base de datos
+require_once "../conexion.php";
+$conexion = Conexion();
+
+// Consulta para dispositivos por categoría
+$consulta_categorias = <<<SQL
+SELECT categoria, COUNT(*) AS cantidad
+FROM productos
+GROUP BY categoria;
+SQL;
+
+$categorias = pg_query($conexion, $consulta_categorias);
+if (!$categorias) {
+    die("Error en la consulta de categorías: " . pg_last_error($conexion));
+}
+$categorias = pg_fetch_all($categorias);
+
+// Consulta para usuarios por rol
+$consulta_usuarios = <<<SQL
+SELECT rol, COUNT(*) AS cantidad
+FROM usuarios
+GROUP BY rol;
+SQL;
+
+$usuarios = pg_query($conexion, $consulta_usuarios);
+if (!$usuarios) {
+    die("Error en la consulta de usuarios: " . pg_last_error($conexion));
+}
+$usuarios = pg_fetch_all($usuarios);
+
+// Convertir datos en formato JSON para JavaScript
+$data_categorias = json_encode($categorias);
+$data_usuarios = json_encode($usuarios);
+
+    // HTML y gráficos
+    echo <<<HTML
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas del Inventario</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Estadísticas del Inventario</h1>
+
+    <!-- Gráfico: Productos por Categoría -->
+    <h2>Productos por Categoría</h2>
+    <canvas id="graficoCategorias"></canvas>
+
+    <!-- Gráfico: Usuarios por Rol -->
+    <h2>Usuarios por Rol</h2>
+    <canvas id="graficoUsuarios"></canvas>
+
+    <script>
+        // Datos desde PHP
+        const categorias = {$data_categorias};
+        const usuarios = {$data_usuarios};
+
+        // Configuración para el gráfico de productos por categoría
+        const ctxCategorias = document.getElementById('graficoCategorias').getContext('2d');
+        new Chart(ctxCategorias, {
+            type: 'bar',
+            data: {
+                labels: categorias.map(c => c.categoria),
+                datasets: [{
+                    label: 'Cantidad de productos',
+                    data: categorias.map(c => c.cantidad),
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+
+        // Configuración para el gráfico de usuarios por rol
+        const ctxUsuarios = document.getElementById('graficoUsuarios').getContext('2d');
+        new Chart(ctxUsuarios, {
+            type: 'pie',
+            data: {
+                labels: usuarios.map(u => u.rol),
+                datasets: [{
+                    label: 'Cantidad de usuarios',
+                    data: usuarios.map(u => u.cantidad),
+                    backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)'],
+                    borderColor: 'rgba(255, 255, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { enabled: true }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+HTML;
+}
+
 
 
 //5. Contar dispositivos por categoría

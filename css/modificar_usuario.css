@@ -1,0 +1,22 @@
+body {
+    background-color: #f8f9fa;
+}
+.contenedor {
+    margin-top: 50px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.form-title {
+    text-align: center;
+    color: #495057;
+    margin-bottom: 20px;
+}
+.btn-back, .btn-home {
+    margin-top: 15px;
+}
+.btn-back a, .btn-home a {
+    text-decoration: none;
+    color: inherit;
+}

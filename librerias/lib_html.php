@@ -21,6 +21,11 @@ $categorias= pg_fetch_all($resultado_consulta);
         exit();
     }
 
+    $mensaje = $_REQUEST["mensaje"];
+    if (empty($mensaje)) {
+        $mensaje = "";
+    }
+
     echo <<<HTML
 <!DOCTYPE html>
 <html lang="es">
@@ -33,14 +38,26 @@ $categorias= pg_fetch_all($resultado_consulta);
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <!--<script src="../js/cargando.js"></script>-->
     <title>Registro de equipos</title>
+    <style>
+         .mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+        #mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+    </style>
 </head>
 <body>
     
 HTML;
-Menu();
     // if (isset($_SESSION["nombre"])) {
         echo <<<HTML
 <div id="loading" style="display: none;">Cargando...</div>
+<p class="mensaje">{$mensaje}</p>
 <div class="container">
     <div class="row">
         <div class="col s12 m8 offset-m2 l6 offset-l3">
@@ -161,18 +178,27 @@ HTML;
     });
 </script>
 HTML;
-Footer();
 echo <<<HTML
 </body>
 </html>
 HTML;
 }
 
+
 function Mostrarequipos(){
     session_start();
 
     require_once "../conexion.php";
     $conexion = Conexion();
+
+    if (!isset($_SESSION["nombre"])) {
+        header("Location: ../vistas/login.php?accion=login-html&mensaje=inicia sesion para continuar");
+        exit();
+    }
+    $mensaje = $_REQUEST["mensaje"];
+    if (empty($mensaje)) {
+        $mensaje = "";
+    }
     // Obtener filtro de categoría
     $filtro_categorias = isset($_GET['categoria']) ? intval($_GET['categoria']) : null;
 
@@ -203,11 +229,22 @@ function Mostrarequipos(){
                     overflow-x: auto;
                 }
             }
+            .mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+        #mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+            
         </style>
     </head>
     <body>
 HTML;
-Menu();
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$ruta_categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
 
     if (isset($_SESSION["nombre"])) {
         $nombreUsuario = htmlspecialchars($_SESSION["nombre"] );
@@ -238,6 +275,245 @@ HTML;*/
         echo <<<HTML
         <a href="../vistas/equipos.php?accion=excel" class="btn btn-warning"><i class="fa-solid fa-file-excel">Excel</i></a>
         <a href="../vistas/equipos.php?accion=pdf" target="_blank" class="btn btn-success"><i class="fa-solid fa-file-pdf">Pdf</i></a>
+        <div class="container mt-4">
+            <h3 class="text-center text-secondary">Equipos</h3>
+            <input type="hidden" id="role" value="{$_SESSION['descripcion']}">
+
+            <!-- Barra de búsqueda y filtros -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="search" id="search" class="form-control" placeholder="Buscar...">
+                        <!--<button class="btn btn-outline-secondary" type="button">Buscar</button>-->
+                    </div>
+                </div>
+                <div class="col-md-6">
+                <form method="get" action="equipos.php">
+                    <input type="hidden" name="accion" value="verequipos">
+                    <select id="category-filter" name="categoria" class="form-select" onchange="this.form.submit()">
+                        <option value="">Todas</option>
+HTML;
+
+    foreach ($categorias as $categoria) {
+        $id = $categoria["categoria_id"];
+        $descripcion = htmlspecialchars($categoria["nombre"]);
+        $selected = ($id == $filtro_categorias) ? "selected" : "";
+        echo "<option value=\"$id\" $selected>$descripcion</option>";
+    }
+
+    echo <<<HTML
+                    </select>
+                </form>
+            </div>
+            <p class="mensaje">{$mensaje}</p>
+
+            <!-- Tabla de equipos -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Memoria RAM</th>
+                            <th>Procesador</th>
+                            <th>Almacenamiento</th>
+                            <th>Dirección MAC</th>
+                            <th>Periféricos</th>
+                            <th>Observacion</th>
+                            <th>Categoria</th>
+                            <th>Contraseña</th>
+HTML;
+if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
+    echo <<< HTML
+                            <th>Acciones</th>
+HTML;
+}
+elseif (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "usuario") {
+}
+echo <<<HTML
+                        </tr>
+                    </thead>
+                    <tbody id="resultados-equipos">
+HTML;
+$consulta = <<< SQL
+SELECT  dispositivos.dispositivo_id AS id, 
+    dispositivos.dispositivo_marca AS marca, 
+    dispositivos.dispositivo_modelo AS modelo, 
+    dispositivos.dispositivo_ram AS ram, 
+    dispositivos.dispositivo_procesador AS procesador, 
+    dispositivos.dispositivo_almacenamiento AS almacenamiento, 
+    dispositivos.dispositivo_perifericos AS perifericos, 
+    dispositivos.dispositivo_nombre_usuario AS nombre, 
+    dispositivos.fecha_registro AS fecha_registro, 
+    dispositivos.fecha_modificacion AS fecha_modificacion, 
+    dispositivos.dispositivo_direccion_mac AS dir_mac,
+    dispositivos.observacion AS observacion,
+    dispositivos.dispositivo_contraseña AS contraseña,
+    dispositivos.categoria_id AS categorias,
+    c.nombre AS categoria_descripcion
+FROM dispositivos 
+JOIN categorias c ON dispositivos.categoria_id = c.categoria_id
+SQL;
+
+//echo "<br><br>".$consulta;
+
+if ($filtro_categorias) {
+$consulta .= " WHERE dispositivos.categoria_id = $filtro_categorias";
+}
+
+$consulta .= " ORDER BY dispositivos.dispositivo_id LIMIT $registros_por_pagina OFFSET $offset";
+
+//echo $consulta;
+$query = pg_query($conexion, $consulta);
+$equipos = pg_fetch_all($query);
+        if ($equipos) {
+            foreach ($equipos as $equipo) {
+                $cantidad_registros = count($equipo);
+                $id_encriptado = base64_encode($equipo['id']);
+                echo <<<HTML
+                <tr>
+                    <td>{$equipo['id']}</td>
+                    <td>{$equipo['nombre']}</td>
+                    <td>{$equipo['marca']}</td>
+                    <td>{$equipo['modelo']}</td>
+                    <td>{$equipo['ram']}</td>
+                    <td>{$equipo['procesador']}</td>
+                    <td>{$equipo['almacenamiento']}</td>
+                    <td>{$equipo['dir_mac']}</td>
+                    <td>{$equipo['perifericos']}</td>
+                    <td>{$equipo['observacion']}</td>
+                    <td>{$equipo['categoria_descripcion']}</td>
+                    <td>{$equipo['contraseña']}</td>
+HTML;
+                    if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
+                        echo <<<HTML
+                    <td>
+                        <a href="equipos.php?accion=modificar&id={$id_encriptado}" class="btn btn-sm btn-primary">
+                            Modificar
+                        </a>
+                        <a href="equipos.php?accion=eliminar&id={$id_encriptado}" onclick="return confirm('¿Estás seguro?')" class="btn btn-sm btn-danger">
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+HTML;
+                    }
+            }
+        } else {
+            echo <<<HTML
+            <tr>
+                <td colspan="12" class="text-center">No hay equipos registrados.</td>
+            </tr>
+HTML;
+        }
+
+        echo <<<HTML
+                    </tbody>
+                </table>
+            </div>
+HTML;
+
+        // Contar total de registros
+        $consulta_total = "SELECT COUNT(*) AS total FROM dispositivos";
+        if ($filtro_categorias) {
+            $consulta_total .= " WHERE categoria_id = $filtro_categorias";
+        }
+        $resultado_total = pg_query($conexion, $consulta_total);
+        $total_registros = pg_fetch_result($resultado_total, 0, 'total');
+        $total_paginas = ceil($total_registros / $registros_por_pagina);
+
+        // Paginación
+        echo '<nav class="d-flex justify-content-center">';
+        echo '<ul class="pagination">';
+        for ($i = 1; $i <= $total_paginas; $i++) {
+            $active = $i == $pagina_actual ? 'active' : '';
+            echo <<<HTML
+            <li class="page-item $active">
+                <a class="page-link" href="equipos.php?accion=verequipos&page=$i&categoria=$filtro_categorias">$i</a>
+            </li>
+HTML;
+        }
+        echo '</ul>';
+        echo '</nav>';
+    }
+    echo <<<HTML
+        <div class="text-center my-4">
+                <a href="equipos.php?accion=aggequipos" class="btn btn-outline-secondary">
+                    <i class="fas fa-user-plus"></i> Agregar Equipos
+                </a>
+            </div>
+
+            <!-- Botón para volver al inicio -->
+            <div class="text-center">
+                <a href="../index.php" class="btn btn-outline-secondary">
+                    <i class="fas fa-house"></i> Volver al inicio
+                </a>
+            </div>
+
+        <script src="../js/buscar.js">
+        </script>
+HTML;
+//Footer();
+    echo <<<HTML
+    </body>
+    </html>
+HTML;
+}
+
+function Mostrarequipos__(){
+    session_start();
+
+    require_once "../conexion.php";
+    $conexion = Conexion();
+    if (!isset($_SESSION["nombre"])) {
+        header("Location: ../vistas/login.php?accion=login-html&mensaje=inicia sesion para continuar");
+        exit();
+    }
+
+    $mensaje = $_REQUEST["mensaje"];
+    if (empty($mensaje)) {
+        $mensaje = "";
+    }
+    // Obtener filtro de categoría
+    $filtro_categorias = isset($_GET['categoria']) ? intval($_GET['categoria']) : null;
+
+    $consulta_categorias = "SELECT categoria_id, nombre FROM categorias";
+    $resultado_categorias = pg_query($conexion, $consulta_categorias);
+    $categorias = pg_fetch_all($resultado_categorias);
+
+    // Construir la consulta para filtrar equipos por categoría
+    $consulta = "SELECT * FROM dispositivos";
+
+   // Definir registros por página y calcular página actual
+   $registros_por_pagina = 10;
+   $pagina_actual = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
+   $offset = ($pagina_actual - 1) * $registros_por_pagina;
+
+    echo <<<HTML
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/tabla_equipos.css">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <title>Tabla de equipos</title>
+        <style>
+        </style>
+    </head>
+    <body>
+HTML;
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$ruta_categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
+
+    if (isset($_SESSION["nombre"])) {
+        $nombreUsuario = htmlspecialchars($_SESSION["nombre"] );
+
+        echo <<<HTML
+        <a href="../vistas/equipos.php?accion=excel" class="btn btn-warning"><i class="fa-solid fa-file-excel">Excel</i></a>
+        <a href="../vistas/equipos.php?accion=pdf" class="btn btn-success"><i class="fa-solid fa-file-pdf">Pdf</i></a>
         <div class="container mt-4">
             <h3 class="text-center text-secondary">Equipos</h3>
             <input type="hidden" id="role" value="{$_SESSION['descripcion']}">
@@ -417,7 +693,6 @@ HTML;
         <script src="../js/buscar.js">
         </script>
 HTML;
-//Footer();
     echo <<<HTML
     </body>
     </html>
@@ -929,7 +1204,7 @@ HTML;
 HTML;
 }
 
-function Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./vistas/usuarios.php?accion=perfil",$cerrar="./vistas/usuarios.php?accion=cerrar",$login="./vistas/login.php?accion=login-html",$aggequipos="./vistas/equipos.php?accion=aggequipos",$categorias="./vistas/categorias.php?accion=vercategorias",$reportes="./vistas/estadisticas.php?accion=masmarcas",$verusuario="./vistas/usuarios.php?accion=aggusuarios"){
+function Menu($inicio="#", $ruta_titulo="#", $titulo = "Inventario SmartInfo", $ruta_perfil="./vistas/usuarios.php?accion=perfil",$cerrar="./vistas/usuarios.php?accion=cerrar",$login="./vistas/login.php?accion=login-html",$aggequipos="./vistas/equipos.php?accion=verequipos",$ruta_categorias="./vistas/categorias.php?accion=vercategorias",$reportes="./vistas/estadisticas.php?accion=masmarcas",$verusuario="./vistas/usuarios.php?accion=ver"){
     echo <<<HTML
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
@@ -968,13 +1243,13 @@ HTML;
 
     echo <<<HTML
                     <li class="nav-item">
-                        <a class="nav-link active" href="#">Inicio</a>
+                        <a class="nav-link active" href="$inicio">Inicio</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="$aggequipos">Productos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="$categorias">Categorías</a>
+                        <a class="nav-link" href="$ruta_categorias">Categorías</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#">Movimientos</a>
@@ -1016,7 +1291,7 @@ function Principal() {
 </head>
 <body>
 HTML;
-Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./vistas/usuarios.php?accion=perfil",$cerrar="./vistas/usuarios.php?accion=cerrar",$login="./vistas/login.php?accion=login-html",$aggequipos="./vistas/equipos.php?accion=aggequipos",$categorias="./vistas/categorias.php?accion=vercategorias",$reportes="./vistas/estadisticas.php?accion=masmarcas",$verusuario="./vistas/usuarios.php?accion=aggusuarios");
+Menu($inicio = "#",$ruta_titulo="#", $titulo = "Inventario SmartInfo", $ruta_perfil="./vistas/usuarios.php?accion=perfil",$cerrar="./vistas/usuarios.php?accion=cerrar",$login="./vistas/login.php?accion=login-html",$aggequipos="./vistas/equipos.php?accion=verequipos",$ruta_categorias="./vistas/categorias.php?accion=vercategorias",$reportes="./vistas/estadisticas.php?accion=masmarcas",$verusuario="./vistas/usuarios.php?accion=ver");
 
 echo<<<HTML
     <header class="bg-light text-center py-5">
@@ -1302,6 +1577,10 @@ function Formulario_usuarios(){
         header("Location: ../vistas/login.php?accion=login-html&mensaje=inicia sesion para continuar");
         exit();
     }*/
+    $mensaje = $_REQUEST["mensaje"];
+    if (empty($mensaje)) {
+        $mensaje = "";
+    }
 
     $usuario_actual = $_SESSION["nombre"];
     //echo "rol : ".$_SESSION['descripcion'];
@@ -1317,10 +1596,21 @@ function Formulario_usuarios(){
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <!--<script src="../js/cargando.js"></script>-->
     <title>Registro de Usuarios</title>
+    <style>
+        .mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+        #mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+    </style>
 </head>
 <body>
 HTML;
-Menu();
     if (isset($_SESSION["nombre"])) {
         echo <<<HTML
         <div>
@@ -1335,6 +1625,7 @@ HTML;
 <div id="loading" style="display: none;">Cargando...
 
 </div>
+<p class="mensaje">{$mensaje}</p>
 <div class="container">
     <div class="d-flex justify-content-between align-items-center">
                         
@@ -1461,7 +1752,6 @@ HTML;
     });
 </script>
 HTML;
-Footer();
 echo<<<HTML
 </body>
 </html>
@@ -1623,8 +1913,13 @@ function Mostrar_usuarios()
     include_once "../conexion.php";
 
     if (!isset($_SESSION["nombre"])) {
-        header("Location: ../vistas/login.php?accion=login-html");
+        header("Location: ../vistas/login.php?accion=login-html&mensaje=inicia sesion para continuar");
         exit();
+    }
+
+    $mensaje = $_REQUEST["mensaje"];
+    if (empty($mensaje)) {
+        $mensaje = "";
     }
 
     $usuario_actual = $_SESSION["nombre"];
@@ -1671,10 +1966,21 @@ function Mostrar_usuarios()
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <title>Gestión de Usuarios</title>
+        <style>.mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+        #mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+        </style>
     </head>
     <body>
 HTML;
-Menu();
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$ruta_categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
 echo <<<HTML
         <div class="container mt-4">
             <!-- Header con usuario en sesión y botón de cerrar sesión -->
@@ -1696,6 +2002,7 @@ echo <<<HTML
                         <!--<button class="btn btn-outline-secondary" type="button">Buscar</button>-->
                     </div>
                 </div>
+                
                 <form method="get" action="usuarios.php?accion=ver&">
                 <input type="hidden" name="accion" value="ver">
                     <select name="cargo" class="form-select w-50 d-inline" onchange="this.form.submit()">
@@ -1717,6 +2024,7 @@ HTML;
                 </form>
             </div>
 
+            <p class="mensaje">{$mensaje}</p>
             <!-- Tabla de usuarios -->
             <div class="table-responsive">
                 <table class="table table-bordered table-hover align-middle text-center">
@@ -1825,7 +2133,6 @@ HTML;
         </div>
         <script src="../js/busqueda.js"></script>
 HTML;
-Footer();
 echo <<<HTML
     </body>
     </html>
@@ -1854,16 +2161,28 @@ function Login_html() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicia Sesión</title>
+    <style>
+        .mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+        #mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+    </style>
 </head>
 
 <body>
 HTML;
 
-Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=aggequipos",$categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=aggusuarios");
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=aggequipos",$ruta_categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
     echo <<<HTML
     
-    <div id="loading">Cargando...</div>
-    <p>{$mensaje}</p>
+    <!--<div id="loading">Cargando...</div>-->
+    <p class="mensaje">{$mensaje}</p>
     <div class="mx-auto contenedor">
         <div class="formulario_registro">
             <form id="myForm" class="mx-auto" action="./login.php?accion=login" onsubmit="showLoading()" method="post">
@@ -1890,7 +2209,6 @@ Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil
         </button>
     </form>
 HTML;
-Footer();
 echo <<<HTML
 </body>
 
@@ -1916,14 +2234,10 @@ function MostrarCategorias(){
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link rel="stylesheet" href="../css/tabla_categorias.css">
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <title>Tabla de Categorias</title>
             <style>
-                @media (max-width: 768px) {
-                    .table-responsive {
-                        overflow-x: auto;
-                    }
-                }
             </style>
         </head>
         <body>
@@ -1931,29 +2245,8 @@ HTML;
     
         if (isset($_SESSION["nombre"])) {
             $nombreUsuario = htmlspecialchars($_SESSION["nombre"] );
-    
-            echo <<<HTML
-            <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-                <div class="container-fluid">
-                    <a class="navbar-brand" href="../index.php">Inventario SmartInfo</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarNav">
-                        <ul class="navbar-nav ms-auto">
-                            <li class="nav-item">
-                                <span class="nav-link text-white">Hola, $nombreUsuario</span>
-                            </li>
-                            <li class="nav-item">
-                                <form action="./usuarios.php?accion=cerrar" method="post" style="display: inline;">
-                                    <button class="btn btn-danger nav-link" type="submit">Cerrar Sesión</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
-HTML;
+
+            Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$ruta_categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
     
             echo <<<HTML
             <div class="container mt-4">
@@ -2073,7 +2366,6 @@ HTML;
             
 HTML;
         }
-        Footer();
         echo <<<HTML
           <!-- Botón para agregar usuarios -->
           
@@ -2190,7 +2482,6 @@ HTML;
     });
 </script>
 HTML;
-Footer();
 echo <<<HTML
 </body>
 </html>

@@ -85,6 +85,7 @@ SQL;
 
 function Guardar()
 {
+    
     if (
         !empty($_POST["dni"]) &&
         !empty($_POST["nombre"]) &&
@@ -156,11 +157,11 @@ function Guardar()
             header("Location: ./usuarios.php?accion=ver");
             exit;
         } else {
-            echo "Hubo un error al registrar el usuario. Intenta nuevamente.";
+            header("Location: ./usuarios.php?accion=aggusuarios&mensaje=Hubo un error al registrar el usuario. Intenta nuevamente.");
             exit;
         }
     } else {
-        echo "Por favor, completa todos los campos.";
+        header("Location: ./usuarios.php?accion=aggusuarios&mensaje=Por favor, completa todos los campos.");
         exit;
     }
 }
@@ -169,7 +170,7 @@ function Guardar()
 function Actualizar_usuarios(){
 
     if (!isset($_GET["id"]) || empty($_GET["id"])) {
-        echo "El identificador del usuario es inválido.";
+        header("Location: usuarios.php?accion=modificar&mensaje=El identificador del usuario es inválido.");
         exit;
     }
 
@@ -191,12 +192,12 @@ function Actualizar_usuarios(){
 
     // Validar el formato del correo
     if (!filter_var($datos['correo'], FILTER_VALIDATE_EMAIL)) {
-        echo "El correo no es válido.";
+        header("Location: usuarios.php?accion=modificar&mensaje=El correo no es válido.");
         exit;
     }
 
     if (strlen($datos['contraseña']) < 6) {
-        echo "La contraseña debe tener al menos 6 caracteres.";
+        header("Location: usuarios.php?accion=modificar&mensaje=La contraseña debe tener al menos 6 caracteres.");
         exit;
     }
 ////, contraseña = $6 ,  $datos['contraseña'],
@@ -211,7 +212,8 @@ SQL;
         header("Location: usuarios.php?accion=ver");
         exit; // Es buena práctica usar exit después de redireccionar
     } else {
-        echo "Error al realizar la operación.";
+        header("Location: usuarios.php?accion=modificar&mensaje=Error al realizar la operación.");
+        exit; // Es buena práctica usar exit después de redireccionar
     }
 
 }
@@ -320,7 +322,8 @@ SQL;
         echo "el registro de id " . $id . " eliminado correctamente";
         exit;
     } else {
-        echo "error ";
+        header("Location: usuarios.php?accion=ver&mensaje=error");
+        exit;
     }
 }
 
@@ -331,14 +334,14 @@ function Eliminar()
 
     // Verificar si el parámetro 'id' está presente
     if (!isset($_GET['id']) || empty($_GET['id'])) {
-        echo "No se proporcionó un ID válido.";
+        header("Location: usuarios.php?accion=ver&mensaje=No se proporcionó un ID válido.");
         exit;
     }
 
     // Decodificar y validar el ID
     $id = base64_decode($_GET['id']);
     if (!filter_var($id, FILTER_VALIDATE_INT)) {
-        echo "El ID proporcionado no es válido.";
+        header("Location: usuarios.php?accion=ver&mensaje=El ID proporcionado no es válido.");
         exit;
     }
 
@@ -350,12 +353,17 @@ function Eliminar()
         header("Location: usuarios.php?accion=ver");
         exit;
     } else {
-        echo "Error al intentar eliminar el registro.";
+        header("Location: usuarios.php?accion=ver&mensaje=Error al intentar eliminar el registro.");
+        exit;
     }
 }
 
 function Modificar_usuarios()
 {
+    $mensaje=$_REQUEST["mensaje"];
+    if (empty($mensaje)) {
+        $mensaje = "";
+    }
     include_once "../conexion.php";
     $conexion = Conexion();
     $id = $_GET["id"];
@@ -382,35 +390,25 @@ function Modificar_usuarios()
     <head>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
         <script src="https://kit.fontawesome.com/d6ecbc133f.js" crossorigin="anonymous"></script>
+        <link rel="stylesheet" href="../css/modificar_usuarios.css">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Modificar Registro</title>
         <style>
-            body {
-                background-color: #f8f9fa;
-            }
-            .contenedor {
-                margin-top: 50px;
-                padding: 20px;
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-            .form-title {
-                text-align: center;
-                color: #495057;
-                margin-bottom: 20px;
-            }
-            .btn-back, .btn-home {
-                margin-top: 15px;
-            }
-            .btn-back a, .btn-home a {
-                text-decoration: none;
-                color: inherit;
-            }
+            .mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
+        #mensaje{
+            text-align: center;
+        font-size: 20px;
+        color: red;
+        }
         </style>
     </head>
     <body>
+        <p class="mensaje">{$mensaje}</p>
         <div class="container col-md-6 col-lg-5 contenedor">
             <h3 class="form-title">Modificar Registro de Usuario</h3>
             <form action="usuarios.php?accion=actualizar&id=$id" method="post">
@@ -466,7 +464,7 @@ HTML;
     </body>
     <div class="btn-back">
                 <button class="btn btn-outline-secondary w-100">
-                    <a href="usuarios.php?accion=verusuarios">
+                    <a href="usuarios.php?accion=ver">
                         <i class="fa-solid fa-backward"></i> Regresar
                     </a>
                 </button>
@@ -538,10 +536,6 @@ function Login(){
 
     $contraseña_veryfy=password_verify($contraseña,$contaseña_delabasededatos);
 
-    echo "<br> contraseña de la base de datos".$contaseña_delabasededatos."</br>";
-    echo "<br> contraseña a comparar".$contraseña."</br>";
-    var_dump($contraseña_veryfy);
-
     // Verifica si se encontró un resultado
     if ($resultado_consulta) {
         // Verificar la contraseña
@@ -576,10 +570,10 @@ function Login(){
             }
             exit; // Asegúrate de llamar a exit después de redireccionar
         } else {
-            echo "Contraseña incorrecta.";
+            header("Location: ../vistas/login.php?accion=login-html&mensaje=correo o Contraseña incorrectas.");
         }
     } else {
-        echo "El correo no está registrado.";
+        header("Location: ../vistas/login.php?accion=login-html&mensaje=El correo no está registrado.");
     }
 }
 
@@ -679,7 +673,7 @@ function Perfil() {
     </head>
     <body>
 HTML;
-Menu($ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./vistas/usuarios.php?accion=perfil",$cerrar="./vistas/usuarios.php?accion=cerrar",$login="./vistas/login.php?accion=login-html",$aggequipos="./vistas/equipos.php?accion=aggequipos",$categorias="./vistas/categorias.php?accion=vercategorias",$reportes="./vistas/estadisticas.php?accion=masmarcas",$verusuario="./vistas/usuarios.php?accion=aggusuarios");
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$ruta_categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
 
     echo <<<HTML
     <div class="container">
@@ -818,7 +812,6 @@ echo <<<HTML
         });
     </script>
 HTML;
-Footer();
 echo <<<HTML
 </body>
 </html>
@@ -833,6 +826,7 @@ function Formulario_enviar_correo() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restablecer Contraseña</title>
+    <link rel="stylesheet" href="../css/enviar_correo.css">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
@@ -845,47 +839,10 @@ function Formulario_enviar_correo() {
     
     <!-- Custom CSS -->
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
-            color: #495057;
-            margin: 0;
-            padding: 0;
-        }
-        .contenedor {
-            max-width: 400px;
-            margin-top: 50px;
-            padding: 20px;
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            margin-bottom: 20px;
-        }
-        .btn-outline-secondary {
-            margin: 10px 0;
-        }
-        #loading {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.8);
-            z-index: 9999;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #495057;
-        }
     </style>
 </head>
 HTML;
-Menu();
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$ruta_categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
 echo <<<HTML
 <body>
     <!--<div id="loading">Cargando...</div>-->
@@ -909,9 +866,9 @@ echo <<<HTML
         </div>
         
         <div class="mt-3 d-flex flex-column">
-            <form id="myForm" action="../vistas/usuarios.php?accion=aggusuario" onsubmit="showLoading()" method="post">
+            <form id="myForm" action="../vistas/login.php?accion=login-html" onsubmit="showLoading()" method="post">
                 <button class="btn btn-outline-secondary" type="submit">
-                    <i class="fa-solid fa-user-plus"></i> Agregar Usuarios
+                    <i class="">Regresar</i> 
                 </button>
             </form>
             
@@ -997,18 +954,20 @@ function restablecer_contraseña(){
     
 }
 
-function Formulario_restablecer_contraseña() {
+function Formulario_restablecer_contraseña(){
+
     include_once "../conexion.php";
 
     $conexion = conexion();
 
-    $token = $_GET['token'] ;
 
-    if (!$token) {
+        $token = $_GET['token'];
+
+    if (!isset($_GET['token'])) {
         die('Token es requerido');
     }
 
-    // Consulta segura con parámetros
+    // Usar parámetros de consulta para evitar inyecciones SQL
     $query = 'SELECT * FROM password_reset WHERE token = $1 AND expires_at > NOW()';
     $result = pg_query_params($conexion, $query, array($token));
 
@@ -1022,7 +981,6 @@ function Formulario_restablecer_contraseña() {
         die('El token es inválido o ha expirado.');
     }
 
-    pg_free_result($result);
     pg_close($conexion);
 
     echo <<<HTML
@@ -1033,47 +991,18 @@ function Formulario_restablecer_contraseña() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restablecer Contraseña</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/restablecer_contraseña.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://kit.fontawesome.com/d6ecbc133f.js" crossorigin="anonymous"></script>
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .form-container {
-            background: #ffffff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
-        }
-        .form-container h2 {
-            color: #495057;
-        }
-        .form-container .btn-primary {
-            background-color: #007bff;
-            border: none;
-        }
-        .form-container .btn-primary:hover {
-            background-color: #0056b3;
-        }
-        .error-message {
-            color: #dc3545;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
+        
     </style>
 </head>
 <body>
+    
     <div class="form-container">
-        <h2 class="text-center">Restablecer Contraseña</h2>
-        <form action="../usuarios/usuarios.php?accion=restablecer" onsubmit="return validateForm()" method="post">
+        <h2>Restablecer Contraseña</h2>
+        <form action="../vistas/usuarios.php?accion=restablecer" onsubmit="return validateForm()" method="post">
             <input type="hidden" name="token" value="$token">
 
             <div class="mb-3">
@@ -1089,7 +1018,24 @@ function Formulario_restablecer_contraseña() {
 
             <button type="submit" class="btn btn-primary w-100">Actualizar Contraseña</button>
         </form>
+       
     </div>
+    <div class="btn-back">
+                <button class="btn btn-outline-secondary w-100">
+                    <a href="usuarios.php?accion=ver">
+                        <i class="fa-solid fa-backward"></i> Regresar
+                    </a>
+                </button>
+            </div>
+            <div class="btn-home">
+                <button class="btn btn-outline-secondary w-100">
+                    <a href="../index.php">
+                        <i class="fa-solid fa-house"></i> Inicio
+                    </a>
+                </button>
+            </div>
+    </div>
+    
 
     <script>
         function validateForm() {
@@ -1110,8 +1056,8 @@ function Formulario_restablecer_contraseña() {
 </body>
 </html>
 HTML;
-}
 
+}
 
 function Restablecer(){
     
@@ -1152,15 +1098,16 @@ if (isset($_POST['token'], $_POST['password'])) {
     if ($reset && $reset['expires_at'] > date('Y-m-d H:i:s')) {
         // Token válido, actualizar la contraseña
         $email = $reset['correo'];
-        //$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
         // Actualizar la contraseña del usuario
-        pg_query_params($conexion, "UPDATE usuarios SET contraseña = $1 WHERE correo = $2", array($datos["password"], $email));
+        pg_query_params($conexion, "UPDATE usuarios SET contraseña = $1 WHERE correo = $2", array($hashedPassword, $email));
 
         // Eliminar el token usado
         pg_query_params($conexion, "DELETE FROM password_reset WHERE token = $1", array($datos["token"]));
 
         echo "La contraseña ha sido actualizada con éxito.";
+        header("Location: ../vistas/login.php?accion=login-html");
         echo '<a href="../usuarios/usuarios.php">ver registros </a>';
 
     } else {
