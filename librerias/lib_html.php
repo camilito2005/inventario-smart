@@ -248,30 +248,6 @@ Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario S
 
     if (isset($_SESSION["nombre"])) {
         $nombreUsuario = htmlspecialchars($_SESSION["nombre"] );
-
-        /*echo <<<HTML
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="../index.php">Inventario SmartInfo</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <span class="nav-link text-white">Hola, $nombreUsuario</span>
-                        </li>
-                        <li class="nav-item">
-                            <form action="./usuarios.php?accion=cerrar" method="post" style="display: inline;">
-                                <button class="btn btn-danger nav-link" type="submit">Cerrar Sesión</button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-HTML;*/
-
         echo <<<HTML
         <a href="../vistas/equipos.php?accion=excel" class="btn btn-warning"><i class="fa-solid fa-file-excel">Excel</i></a>
         <a href="../vistas/equipos.php?accion=pdf"  class="btn btn-success"><i class="fa-solid fa-file-pdf">Pdf</i></a>
@@ -372,6 +348,8 @@ $equipos = pg_fetch_all($query);
             foreach ($equipos as $equipo) {
                 $cantidad_registros = count($equipo);
                 $id_encriptado = base64_encode($equipo['id']);
+                $id = $equipo['id'];
+                $contraseña = $equipo['contraseña'];
                 echo <<<HTML
                 <tr>
                     <td>{$equipo['id']}</td>
@@ -385,7 +363,13 @@ $equipos = pg_fetch_all($query);
                     <td>{$equipo['perifericos']}</td>
                     <td>{$equipo['observacion']}</td>
                     <td>{$equipo['categoria_descripcion']}</td>
-                    <td>{$equipo['contraseña']}</td>
+                    <td>
+    <input type="password" id="contraseña-{$id}" value="{$contraseña}" class="form-control" readonly>
+    <button type="button" class="btn btn-sm btn-secondary" onclick="togglePassword({$id})">
+        <i class="fa-solid fa-eye" id="eye-icon-{$id}"></i> Ver
+    </button>
+</td>
+
 HTML;
                     if (isset($_SESSION['nombre']) && $_SESSION['descripcion'] === "administrador") {
                         echo <<<HTML
@@ -454,6 +438,9 @@ HTML;
 
         <script src="../js/buscar.js">
         </script>
+        <script src="../js/contraseña.js">
+</script>
+
 HTML;
 //Footer();
     echo <<<HTML
