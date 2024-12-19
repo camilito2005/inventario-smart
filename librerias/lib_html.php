@@ -274,7 +274,7 @@ HTML;*/
 
         echo <<<HTML
         <a href="../vistas/equipos.php?accion=excel" class="btn btn-warning"><i class="fa-solid fa-file-excel">Excel</i></a>
-        <a href="../vistas/equipos.php?accion=pdf" target="_blank" class="btn btn-success"><i class="fa-solid fa-file-pdf">Pdf</i></a>
+        <a href="../vistas/equipos.php?accion=pdf"  class="btn btn-success"><i class="fa-solid fa-file-pdf">Pdf</i></a>
         <div class="container mt-4">
             <h3 class="text-center text-secondary">Equipos</h3>
             <input type="hidden" id="role" value="{$_SESSION['descripcion']}">
