@@ -37,19 +37,8 @@ $categorias= pg_fetch_all($resultado_consulta);
     <link rel="shortcut icon" href="../../fotos/agregar-usuario.png" type="image/x-icon">-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <!--<script src="../js/cargando.js"></script>-->
+    <link rel="stylesheet" href="../css/registrar_equipos.css">
     <title>Registro de equipos</title>
-    <style>
-         .mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
-        #mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
-    </style>
 </head>
 <body>
     
@@ -224,22 +213,6 @@ function Mostrarequipos(){
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <title>Tabla de equipos</title>
         <style>
-            @media (max-width: 768px) {
-                .table-responsive {
-                    overflow-x: auto;
-                }
-            }
-            .mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
-        #mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
-            
         </style>
     </head>
     <body>
@@ -1251,6 +1224,8 @@ HTML;
             </div>
         </div>
     </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 HTML;
 }
 
@@ -1380,183 +1355,6 @@ echo<<<HTML
 HTML;
 }
 
-
-
-function Principal000($usuarioLogueado = null) {
-    // Si hay un usuario logueado, tomamos su nombre
-
-    if (isset($_SESSION["nombre"])) {
-        $nombreUsuario = $_SESSION["nombre"];
-    }
-    elseif (!isset($_SESSION["nombre"])) {
-        $nombreUsuario = NULL;
-    }
-    //$nombreUsuario = $usuarioLogueado ? htmlspecialchars($usuarioLogueado['nombre']) : null;
-
-    echo <<<HTML
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario SmartInfo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Inventario SmartInfo</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./vistas/equipos.php?accion=aggequipos">Productos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Categorías</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Movimientos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Reportes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./vistas/usuarios.php?accion=ver">Usuarios</a>
-                    </li>
-HTML;
-
-    // Si hay un usuario logueado
-    if (isset($_SESSION["correo"])) {
-        echo <<<HTML
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Bienvenido, $nombreUsuario</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="./vistas/login.php?accion=cerrar-sesion">Cerrar sesión</a>
-                    </li>
-HTML;
-    } else {
-        // Mostrar opción de Login si no hay sesión iniciada
-        echo <<<HTML
-                    <li class="nav-item">
-                        <a class="nav-link" href="./vistas/login.php?accion=login-html">Login</a>
-                    </li>
-HTML;
-    }
-
-    echo <<<HTML
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <header class="bg-light text-center py-5">
-        <div class="container">
-            <h1 class="display-4">Bienvenido al Inventario SmartInfo</h1>
-            <p class="lead">Gestiona tus productos de manera fácil y eficiente.</p>
-            <a href="#" class="btn btn-primary btn-lg">Explorar Inventario</a>
-        </div>
-    </header>
-
-    <div class="container my-5">
-        <div class="row">
-            <!-- Productos -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Productos</h5>
-                        <p class="card-text">Añade, edita o elimina productos de tu inventario.</p>
-                        <a href="#" class="btn btn-primary">Gestionar</a>
-                    </div>
-                </div>
-            </div>
-            <!-- Categorías -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Categorías</h5>
-                        <p class="card-text">Organiza tus productos por categorías y subcategorías.</p>
-                        <a href="#" class="btn btn-primary">Explorar</a>
-                    </div>
-                </div>
-            </div>
-            <!-- Movimientos -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Movimientos</h5>
-                        <p class="card-text">Registra entradas y salidas de productos.</p>
-                        <a href="#" class="btn btn-primary">Registrar</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <!-- Reportes -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Reportes</h5>
-                        <p class="card-text">Genera reportes detallados sobre tu inventario.</p>
-                        <a href="#" class="btn btn-primary">Ver Reportes</a>
-                    </div>
-                </div>
-            </div>
-            <!-- Usuarios -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Usuarios</h5>
-                        <p class="card-text">Gestiona roles y permisos para el sistema.</p>
-                        <a href="#" class="btn btn-primary">Administrar</a>
-                    </div>
-                </div>
-            </div>
-            <!-- Alertas -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Alertas</h5>
-                        <p class="card-text">Revisa productos con stock bajo.</p>
-                        <a href="#" class="btn btn-primary">Ver Alertas</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mt-4">
-            <!-- Buscador -->
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Buscador</h5>
-                        <p class="card-text">Encuentra productos rápidamente utilizando filtros avanzados.</p>
-                        <a href="#" class="btn btn-primary">Buscar</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <footer class="bg-primary text-white text-center py-3">
-        <p class="mb-0">&copy; 2024 Inventario SmartInfo. Todos los derechos reservados.</p>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
-HTML;
-}
-
-
-
 function Formulario_usuarios(){
     session_start();
 
@@ -1582,18 +1380,9 @@ function Formulario_usuarios(){
     <link rel="shortcut icon" href="../../fotos/agregar-usuario.png" type="image/x-icon">-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <!--<script src="../js/cargando.js"></script>-->
+    <link rel="stylesheet" href="../css/ingresar_usuarios.css">
     <title>Registro de Usuarios</title>
     <style>
-        .mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
-        #mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
     </style>
 </head>
 <body>
@@ -1952,17 +1741,9 @@ function Mostrar_usuarios()
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link rel="stylesheet" href="../css/mostrar_equipos.css">
         <title>Gestión de Usuarios</title>
-        <style>.mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
-        #mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
+        <style>
         </style>
     </head>
     <body>
@@ -2149,16 +1930,6 @@ function Login_html() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicia Sesión</title>
     <style>
-        .mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
-        #mensaje{
-            text-align: center;
-        font-size: 20px;
-        color: red;
-        }
     </style>
 </head>
 
