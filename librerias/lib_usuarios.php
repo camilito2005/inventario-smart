@@ -114,13 +114,13 @@ function Guardar()
 
         // Validar coincidencia de contraseñas
         if ($datos["contraseña"] !== $datos["confirmar_contraseña"]) {
-            echo "Las contraseñas no coinciden. Por favor, intente de nuevo.";
+            header("Location: ./usuarios.php?accion=aggusuarios&mensaje=Las contraseñas no coinciden. Por favor, intente de nuevo.");
             exit;
         }
 
         // Validar longitud de contraseña
         if (strlen($datos["contraseña"]) < 6) {
-            echo "La contraseña debe tener al menos 6 caracteres.";
+            header("Location: ./usuarios.php?accion=aggusuarios&mensaje=La contraseña debe tener al menos 6 caracteres.");
             exit;
         }
 
@@ -128,7 +128,7 @@ function Guardar()
         $consultaCorreo = "SELECT count(*) FROM usuarios WHERE correo = $1";
         $resultadoCorreo = pg_query_params($conexion, $consultaCorreo, [$datos["correo"]]);
         if (pg_fetch_result($resultadoCorreo, 0, 0) > 0) {
-            echo "El correo ya está registrado. Intenta con otro.";
+            header("Location: ./usuarios.php?accion=aggusuarios&mensaje=El correo ya está registrado. Intenta con otro.");
             exit;
         }
 
@@ -136,7 +136,7 @@ function Guardar()
         $consultadni = "SELECT count(*) FROM usuarios WHERE dni = $1";
         $resultadoDni = pg_query_params($conexion, $consultadni, [$datos["dni"]]);
         if (pg_fetch_result($resultadoDni, 0, 0) > 0) {
-            echo "El DNI ya está registrado. Intenta con otro.";
+            header("Location: ./usuarios.php?accion=aggusuarios&mensaje=El DNI ya está registrado. Intenta con otro.");
             exit;
         }
 
