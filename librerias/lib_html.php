@@ -1355,7 +1355,7 @@ echo<<<HTML
 HTML;
 }
 
-function Formulario_usuarios000(){
+function Formulario_usuarios(){
     session_start();
 
     /*if (!isset($_SESSION["nombre"])) {
@@ -1535,7 +1535,7 @@ HTML;
 }
 
 
-function Formulario_usuarios() {
+function Formulario_usuarios00() {
     session_start();
 
     $mensaje = $_REQUEST["mensaje"];
