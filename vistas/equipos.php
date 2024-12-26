@@ -29,5 +29,9 @@ if ($accion == "buscar") {
 if ($accion == "pdf") {
     GenerarPDF();
 }
+
+if ($accion == "excel") {
+    Excel();
+}
 //ingresar_equipos();
 ?>

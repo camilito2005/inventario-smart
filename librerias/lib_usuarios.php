@@ -154,7 +154,7 @@ function Guardar()
         $resultado = pg_query_params($conexion, $consulta, $params);
 
         if ($resultado) {
-            header("Location: ./usuarios.php?accion=ver");
+            header("Location: ./usuarios.php?accion=ver&mensaje=usuario registrado correctamnete");
             exit;
         } else {
             header("Location: ./usuarios.php?accion=aggusuarios&mensaje=Hubo un error al registrar el usuario. Intenta nuevamente.");
@@ -209,7 +209,8 @@ SQL;
     $resultado_consulta = pg_query_params($conexion, $consulta, array($datos['nombre'], $datos['apellido'], $datos['telefono'], $datos['direccion'], $datos['correo'],$contraseña_hash,$datos['cargo_id'], $datos['id']));
 
     if ($resultado_consulta) {
-        header("Location: usuarios.php?accion=ver");
+        header("Location: usuarios.php?accion=ver&mensaje=usuario con id ".$_GET['id']
+        ." actualizado correctamente");
         exit; // Es buena práctica usar exit después de redireccionar
     } else {
         header("Location: usuarios.php?accion=modificar&mensaje=Error al realizar la operación.");
@@ -350,7 +351,7 @@ function Eliminar()
     $resultado = pg_query_params($conexion, $consulta, [$id]);
 
     if ($resultado) {
-        header("Location: usuarios.php?accion=ver");
+        header("Location: usuarios.php?accion=ver&mensaje=usuario de id ".$id."eliminado correctamente");
         exit;
     } else {
         header("Location: usuarios.php?accion=ver&mensaje=Error al intentar eliminar el registro.");
@@ -551,19 +552,11 @@ function Login(){
             $_SESSION["descripcion"] = $resultado_consulta['rol_descripcion'];
             $_SESSION["rol_id"] = $resultado_consulta['rol_id']; // Guarda el cargo_id para redirigir
 
-            // Redirecciona según el rol del usuario
             if ($resultado_consulta['rol_id'] == 1) {  // Administrador
-                header("Location: ../vistas/usuarios.php?accion=ver"); // Cambia la URL según tu estructura
-                /*echo "<br>hola nombre :".$_SESSION["nombre"]."</br>";
-                echo "<br> descripcion : ".$_SESSION["descripcion"]."</br>";
-                echo "<br> rol : ".$_SESSION["rol_id"];*/
+                header("Location: ../vistas/usuarios.php?accion=ver&mensaje="); 
                 exit;
             } elseif ($resultado_consulta['rol_id'] == 2) {  // Empleado
-                header("Location: ../vistas/usuarios.php?accion=ver"); 
-                /*echo "<br>hola nombre :".$_SESSION["nombre"]."</br>";
-                echo "<br> descripcion : ".$_SESSION["descripcion"]."</br>";
-                echo "<br> rol : ".$_SESSION["rol_id"];*/
-                //header("Location: ../catalogo/catalogo.php?accion=catalogo"); // Cambia la URL según tu estructura
+                header("Location: ../vistas/usuarios.php?accion=ver&mensaje="); 
                 exit;
             } else {
                 echo "Rol no reconocido.";
@@ -581,7 +574,7 @@ function Cerrar_sesion()
 {
     session_start();
     session_destroy();
-    header("Location: ../vistas/login.php?accion=login-html");
+    header("Location: ../vistas/login.php?accion=login-html&mensaje=");
     exit;
 }
 function Buscar($search) {
@@ -653,10 +646,6 @@ function Perfil() {
     $consulta_cargos = "SELECT id, descripcion FROM roles";
     $resultado_cargos = pg_query($conexion, $consulta_cargos);
     $cargos = pg_fetch_all($resultado_cargos); // Convertimos a array para usar foreach
-    
-    if (isset($_GET['login_success']) && $_GET['login_success'] == 1) {
-        echo "<script>alert('Inicio de sesión exitoso. ¡Bienvenido!');</script>";
-    }
 
     echo <<<HTML
     <!DOCTYPE html>
@@ -670,7 +659,7 @@ function Perfil() {
     <body>
 HTML;
 
-    Menu($inicio="../index.php", $ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil", $cerrar="./usuarios.php?accion=cerrar", $login="./login.php?accion=login-html", $aggequipos="./equipos.php?accion=verequipos", $ruta_categorias="./categorias.php?accion=vercategorias", $reportes="./estadisticas.php?accion=masmarcas", $verusuario="./usuarios.php?accion=ver");
+    Menu($inicio="../index.php", $ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil", $cerrar="./usuarios.php?accion=cerrar", $login="./login.php?accion=login-html&mensaje=", $aggequipos="./equipos.php?accion=verequipos&mensaje=", $ruta_categorias="./categorias.php?accion=vercategorias", $reportes="./estadisticas.php?accion=masmarcas", $verusuario="./usuarios.php?accion=ver&mensaje=");
 
     echo <<<HTML
     <div class="container mt-5">
@@ -681,6 +670,15 @@ HTML;
 HTML;
 
     if (isset($_SESSION["correo"])) {
+        $id = $_SESSION["id"];
+        $descripcion = $_SESSION["descripcion"];
+        $dni = $_SESSION["dni"];
+        $nombre = $_SESSION["nombre"];
+        $apellido = $_SESSION["apellido"];
+        $telefono = $_SESSION["telefono"];
+        $direccion = $_SESSION["direccion"];
+        $correo = $_SESSION["correo"];
+        $contraseña = $_SESSION["contraseña"];
         echo <<<HTML
             <p><strong>Cargo/Rol: {$_SESSION["descripcion"]}</strong></p>
             <p><strong>Identificador: {$_SESSION["id"]}</strong></p>
@@ -716,7 +714,7 @@ HTML;
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form action="../../librerias/lib_configuracion.php?accion=actualizar&id={$id}" method="POST">
+                    <form action="?accion=actualizar&id={$id}" method="POST">
                         <div class="mb-3">
                             <label for="identificador" class="form-label">Identificador</label>
                             <input type="text" class="form-control" id="identificador" name="id" value="{$id}" disabled required>
@@ -1088,6 +1086,4 @@ if (isset($_POST['token'], $_POST['password'])) {
 }
 
 }
-
-
 ?>

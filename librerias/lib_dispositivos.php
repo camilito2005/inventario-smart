@@ -1,4 +1,8 @@
 <?php
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
 function RegistrarEquipos()
 {
     session_start();
@@ -50,55 +54,14 @@ function RegistrarEquipos()
     $result = pg_query_params($conexion, $consulta, array($marca, $modelo, $ram, $procesador, $almacenamiento, $perifericos,$nombre, $direccion_mac, $observacion,$categoria,$contraseña, $fecha));
 
     if ($result) {
-        echo "<script>alert('Equipo registrado correctamente.');</script>";
+        header("Location: ./equipos.php?accion=verequipos&mensaje=Equipos registrados exitosamente");
+        
     } else {
         header("Location: ./equipos.php?accion=aggequipos&mensaje=Error al registrar el equipo.");
         exit;
     }
 }
 
-
-function modificarEquipos000(){
-    $datos = [
-        "id" => $_GET["id"],
-        "nombre" => $_POST["nombre"],
-        "apellido" => $_POST["apellido"],
-        "telefono" => $_POST["telefono"],
-        "direccion" => $_POST["direccion"],
-        "correo" => $_POST["correo"],
-        "contraseña" => $_POST["contraseña"],
-        "cargo_id" => $_POST["cargo_id"]
-    ];
-
-    include_once "../conexion.php";
-    $conexion = Conexion();
-
-    // Validar el formato del correo
-    /*if (!filter_var($datos['correo'], FILTER_VALIDATE_EMAIL)) {
-        echo "El correo no es válido.";
-        exit;
-    }*/
-
-    /*if (strlen($datos['contraseña']) < 6) {
-        echo "La contraseña debe tener al menos 6 caracteres.";
-        exit;
-    }*/
-////, contraseña = $6 ,  $datos['contraseña'],
-    $consulta = <<<SQL
-        UPDATE usuarios SET nombre = $1, apellido = $2, telefono = $3, direccion = $4, correo = $5, contraseña = $6, cargo_id = $7 WHERE id = $8
-SQL;
-
-    // Ejecutar la consulta
-    $resultado_consulta = pg_query_params($conexion, $consulta, array($datos['nombre'], $datos['apellido'], $datos['telefono'], $datos['direccion'], $datos['correo'],$datos['contraseña'],$datos['cargo_id'], $datos['id']));
-
-    if ($resultado_consulta) {
-        header("Location: ");
-        exit; // Es buena práctica usar exit después de redireccionar
-    } else {
-        echo "Error al realizar la operación.";
-    }
-
-}
 
 function Actualizar_equipos() {
     $id = $_GET["id"];
@@ -142,7 +105,7 @@ SQL;
 
     if ($resultado_consulta) {
         // Redirigir al usuario después de una operación exitosa
-        header("Location: equipos.php?accion=verequipos");
+        header("Location: equipos.php?accion=verequipos&mensaje=exito, se modifico correctamente");
         exit;
     } else {
         header("Location: equipos.php?accion=modificar&mensaje=Error al realizar la operación:");
@@ -171,11 +134,11 @@ SQL;
     $resultado = pg_query_params($conexion, $consulta,array($id));
 
     if ($resultado) {
-        header("Location: equipos.php?accion=verequipos");
-        echo "el registro de id " . $id . " eliminado correctamente";
+        header("Location: equipos.php?accion=verequipos&mensaje=el registro de id " . $id . " eliminado correctamente");
         exit;
     } else {
-        echo "error ";
+        header("Location: equipos.php?accion=verequipo&mensaje=ocurrio un error, intentalo de nuevos");
+        exit;
     }
 }
 
@@ -446,4 +409,83 @@ include_once "../conexion.php";
     
 }
 
+
+function Excel(){
+    require '../vendor/autoload.php';
+    require_once "../conexion.php";
+    
+    
+        $conexion = Conexion();
+    
+        // Consulta para obtener los datos
+        $consulta = <<<SQL
+    SELECT  dispositivos.dispositivo_id AS id, 
+            dispositivos.dispositivo_nombre_usuario AS nombre, 
+            dispositivos.dispositivo_marca AS marca, 
+            dispositivos.dispositivo_modelo AS modelo, 
+            dispositivos.dispositivo_ram AS ram, 
+            dispositivos.dispositivo_procesador AS procesador, 
+            dispositivos.dispositivo_almacenamiento AS almacenamiento, 
+            dispositivos.dispositivo_direccion_mac AS dir_mac, 
+            dispositivos.dispositivo_perifericos AS perifericos, 
+            dispositivos.observacion AS observacion,
+            dispositivos.dispositivo_contraseña AS contraseña, 
+            c.nombre AS categoria_descripcion
+    FROM dispositivos
+    JOIN categorias c ON dispositivos.categoria_id = c.categoria_id;
+SQL;
+    
+        $resultado = pg_query($conexion, $consulta);
+        $equipos = pg_fetch_all($resultado);
+    
+        // Crear un nuevo archivo Excel
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+    
+        // Encabezados
+        $encabezados = [
+            'ID', 'Nombre', 'Marca', 'Modelo', 'Memoria RAM', 'Procesador',
+            'Almacenamiento', 'Dirección MAC', 'Periféricos', 'Observación', 
+            'Contraseña', 'Categoría'
+        ];
+        $sheet->fromArray($encabezados, NULL, 'A1');
+    
+        // Insertar datos
+        $fila = 2;
+        if ($equipos) {
+            foreach ($equipos as $equipo) {
+                $datos = [
+                    $equipo["id"], 
+                    $equipo['nombre'], 
+                    $equipo['marca'], 
+                    $equipo['modelo'], 
+                    $equipo['ram'], 
+                    $equipo['procesador'], 
+                    $equipo['almacenamiento'], 
+                    $equipo['dir_mac'], 
+                    $equipo['perifericos'], 
+                    $equipo['observacion'], 
+                    $equipo['contraseña'], 
+                    $equipo['categoria_descripcion']
+                ];
+                $sheet->fromArray($datos, NULL, "A{$fila}");
+                $fila++;
+            }
+        }
+    
+        // Generar archivo Excel
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'equipos.xlsx';
+    
+        // Enviar encabezados para descarga
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header("Content-Disposition: attachment; filename=\"$filename\"");
+        header('Cache-Control: max-age=0');
+    
+        $writer->save('php://output');
+        exit();
+    }
+    
+    
+      
 ?>

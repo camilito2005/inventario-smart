@@ -1,4 +1,10 @@
 <?php
+
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+
+
 function Masventas() {
     include_once "../conexion.php";
     $conexion = Conexion();
@@ -125,7 +131,7 @@ function EquiposPorMarca() {
 
     if ($equipos_por_marca) {
         foreach ($equipos_por_marca as $equipo) {
-            $marcas[] = $equipo['marca'];
+            $marcas[] = $equipo['dispositivo_marca'];
             $totales[] = $equipo['total_equipos'];
         }
     }
@@ -148,9 +154,25 @@ function EquiposPorMarca() {
     </head>
     <body>
 HTML;
-Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html",$aggequipos="./equipos.php?accion=verequipos",$categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver");
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html&mensaje=",$aggequipos="./equipos.php?accion=verequipos&mensaje=",$categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver&mensaje=");
 
 echo <<<HTML
+<form action="estadisticas.php?accion=equiposxcategorias" method="post">
+    <button class="btn btn-success mt-3" type="submit">
+        <i class="fa-solid fa-file-excel"></i> productos por categorias
+    </button>
+</form>
+<form action="estadisticas.php?accion=excel" method="post">
+    <button class="btn btn-success mt-3" type="submit">
+        <i class="fa-solid fa-file-excel"></i> Exportar a Excel
+    </button>
+</form>
+<form action="estadisticas.php?accion=pdf" method="post">
+    <button class="btn btn-danger mt-3" type="submit">
+        <i class="fa-solid fa-file-pdf"></i> Exportar a PDF
+    </button>
+</form>
+
         <div class="container mt-4">
             <h2 class="text-center mb-4">Cantidad de Equipos por Marca</h2>
             <canvas id="chartEquipos"></canvas>
@@ -186,6 +208,7 @@ echo <<<HTML
                     <i class="fa-solid fa-house"></i> Inicio
                 </button>
             </form>
+
         </div>
     </body>
     </html>
@@ -197,11 +220,13 @@ function Estadisticas() {
 require_once "../conexion.php";
 $conexion = Conexion();
 
-// Consulta para dispositivos por categoría
+// Consulta para dispositivos por categoría con nombres de las categorías
 $consulta_categorias = <<<SQL
-SELECT categoria, COUNT(*) AS cantidad
-FROM productos
-GROUP BY categoria;
+SELECT c.nombre AS categoria, COUNT(d.dispositivo_id) AS cantidad
+FROM categorias c
+LEFT JOIN dispositivos d ON c.categoria_id = d.categoria_id
+GROUP BY c.nombre
+ORDER BY cantidad DESC;
 SQL;
 
 $categorias = pg_query($conexion, $consulta_categorias);
@@ -212,9 +237,17 @@ $categorias = pg_fetch_all($categorias);
 
 // Consulta para usuarios por rol
 $consulta_usuarios = <<<SQL
-SELECT rol, COUNT(*) AS cantidad
-FROM usuarios
-GROUP BY rol;
+SELECT 
+    roles.descripcion AS rol, 
+    COUNT(usuarios.id) AS cantidad
+FROM 
+    usuarios
+INNER JOIN 
+    roles 
+ON 
+    usuarios.rol_id = roles.id
+GROUP BY 
+    roles.descripcion;
 SQL;
 
 $usuarios = pg_query($conexion, $consulta_usuarios);
@@ -227,8 +260,8 @@ $usuarios = pg_fetch_all($usuarios);
 $data_categorias = json_encode($categorias);
 $data_usuarios = json_encode($usuarios);
 
-    // HTML y gráficos
-    echo <<<HTML
+// HTML y gráficos
+echo <<<HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -236,17 +269,31 @@ $data_usuarios = json_encode($usuarios);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Estadísticas del Inventario</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
+HTML;
+Menu($inicio="../index.php",$ruta_titulo="../index.php", $titulo = "Inventario SmartInfo", $ruta_perfil="./usuarios.php?accion=perfil",$cerrar="./usuarios.php?accion=cerrar",$login="./login.php?accion=login-html&mensaje=",$aggequipos="./equipos.php?accion=verequipos&mensaje=",$categorias="./categorias.php?accion=vercategorias",$reportes="./estadisticas.php?accion=masmarcas",$verusuario="./usuarios.php?accion=ver&mensaje=");
+echo <<<HTML
+
     <h1>Estadísticas del Inventario</h1>
 
+    
+
     <!-- Gráfico: Productos por Categoría -->
+     <div style = "display:flex">
+    <div style="width: 400px; height: 300px;">
     <h2>Productos por Categoría</h2>
     <canvas id="graficoCategorias"></canvas>
-
-    <!-- Gráfico: Usuarios por Rol -->
-    <h2>Usuarios por Rol</h2>
+</div>
+    
+<div style="width: 400px; height: 300px;">
+<h2>Usuarios por Rol</h2>
     <canvas id="graficoUsuarios"></canvas>
+</div>
+</div>
+<!--<canvas id="graficoUsuarios" width="400" height="300"></canvas>-->
 
     <script>
         // Datos desde PHP
@@ -254,7 +301,7 @@ $data_usuarios = json_encode($usuarios);
         const usuarios = {$data_usuarios};
 
         // Configuración para el gráfico de productos por categoría
-        const ctxCategorias = document.getElementById('graficoCategorias').getContext('2d');
+        const ctxCategorias = document.getElementById('graficoCategorias').getContext('3d');
         new Chart(ctxCategorias, {
             type: 'bar',
             data: {
@@ -304,8 +351,6 @@ $data_usuarios = json_encode($usuarios);
 HTML;
 }
 
-
-
 //5. Contar dispositivos por categoría
 $consulta = <<<SQL
 SELECT c.nombre AS categoria, COUNT(d.dispositivo_id) AS cantidad_dispositivos
@@ -314,4 +359,101 @@ LEFT JOIN dispositivos d ON c.categoria_id = d.categoria_id
 GROUP BY c.nombre;
 SQL;
 
+function Excel_equiposxmarcas() {
+    require_once '../excel/vendor/autoload.php'; // PhpSpreadsheet
+
+    include_once "../conexion.php";
+    $conexion = Conexion();
+
+    // Consulta SQL
+    $query = "
+        SELECT 
+            dispositivo_marca,
+            COUNT(*) AS total_equipos
+        FROM 
+            dispositivos
+        GROUP BY 
+            dispositivo_marca
+        ORDER BY 
+            total_equipos DESC;
+    ";
+    $resultado = pg_query($conexion, $query);
+    if (!$resultado) {
+        die("Error en la consulta: " . pg_last_error($conexion));
+    }
+
+    // Crear Excel
+
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Equipos por Marca');
+
+    // Encabezados
+    $sheet->setCellValue('A1', 'Marca');
+    $sheet->setCellValue('B1', 'Total Equipos');
+
+    // Llenar datos
+    $fila = 2;
+    while ($equipo = pg_fetch_assoc($resultado)) {
+        $sheet->setCellValue("A$fila", $equipo['dispositivo_marca']);
+        $sheet->setCellValue("B$fila", $equipo['total_equipos']);
+        $fila++;
+    }
+
+    pg_close($conexion);
+
+    // Descargar archivo
+    $writer = new Xlsx($spreadsheet);
+    $nombreArchivo = 'Equipos_Por_Marca.xlsx';
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header("Content-Disposition: attachment; filename=\"$nombreArchivo\"");
+    $writer->save('php://output');
+    exit();
+}
+
+
+function Pdf_equiposxmarca() {
+    include_once "../conexion.php";
+    require_once "../fpdf/fpdf.php";
+    $conexion = Conexion();
+
+    // Consulta SQL
+    $query = "
+        SELECT 
+            dispositivo_marca,
+            COUNT(*) AS total_equipos
+        FROM 
+            dispositivos
+        GROUP BY 
+            dispositivo_marca
+        ORDER BY 
+            total_equipos DESC;
+    ";
+    $resultado = pg_query($conexion, $query);
+    if (!$resultado) {
+        die("Error en la consulta: " . pg_last_error($conexion));
+    }
+
+    // Crear PDF
+    $pdf = new FPDF();
+    $pdf->AddPage();
+    $pdf->SetFont('Arial', 'B', 12);
+    $pdf->Cell(0, 10, 'Equipos por Marca', 0, 1, 'C');
+
+    // Encabezados
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(90, 10, 'Marca', 1);
+    $pdf->Cell(90, 10, 'Total Equipos', 1, 1);
+
+    // Llenar datos
+    $pdf->SetFont('Arial', '', 10);
+    while ($equipo = pg_fetch_assoc($resultado)) {
+        $pdf->Cell(90, 10, $equipo['dispositivo_marca'], 1);
+        $pdf->Cell(90, 10, $equipo['total_equipos'], 1, 1);
+    }
+
+    pg_close($conexion);
+    $pdf->Output('D', 'Equipos_Por_Marca.pdf');
+    exit();
+}
 ?>
