@@ -411,7 +411,7 @@ include_once "../conexion.php";
 
 
 function Excel(){
-    require '../vendor/autoload.php';
+    require '../excel/vendor/autoload.php';
     require_once "../conexion.php";
     
     
@@ -444,7 +444,7 @@ SQL;
     
         // Encabezados
         $encabezados = [
-            'ID', 'Nombre', 'Marca', 'Modelo', 'Memoria RAM', 'Procesador',
+            'Nombre', 'Marca', 'Modelo', 'Memoria RAM', 'Procesador',
             'Almacenamiento', 'Dirección MAC', 'Periféricos', 'Observación', 
             'Contraseña', 'Categoría'
         ];
@@ -455,7 +455,6 @@ SQL;
         if ($equipos) {
             foreach ($equipos as $equipo) {
                 $datos = [
-                    $equipo["id"], 
                     $equipo['nombre'], 
                     $equipo['marca'], 
                     $equipo['modelo'], 
